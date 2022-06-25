@@ -2,13 +2,16 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/:section?',
+    path: '/?',
     component: () => import(/* webpackChunkName: "home" */ '../views/Home.vue'),
     props: true
   }, {
-    path: '/:section/:id',
+    path: '/posts/:id',
     component: () => import(/* webpackChunkName: "post" */ '../views/Post.vue'),
     props: true
+  }, {
+    path: '/posts/create',
+    component: () => import(/* webpackChunkName: "post" */ '../views/CreatePost.vue')
   }
 ]
 
