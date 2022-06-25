@@ -83,7 +83,7 @@
 </template>
 
 <script language="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 
 const {
   VUE_APP_NAVBAR_BG_CSS_COLOR = 'black',
@@ -102,12 +102,7 @@ export default defineComponent({
     }
   },
   setup () {
-    const showDropdown = ref(false)
-    const collapseMenu = ref(true)
-
     return {
-      showDropdown,
-      collapseMenu,
       VUE_APP_NAVBAR_BG_CSS_COLOR,
       VUE_APP_NAVBAR_TEXT_CSS_COLOR
     }
