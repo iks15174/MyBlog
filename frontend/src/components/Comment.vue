@@ -20,10 +20,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import CommentItem from '@/components/CommentItem.vue'
-const {
-  VUE_APP_MAIN_BG_CSS_COLOR = 'white',
-  VUE_APP_MAIN_TEXT_CSS_COLOR = 'black'
-} = process.env
 
 export default defineComponent({
   components: {
