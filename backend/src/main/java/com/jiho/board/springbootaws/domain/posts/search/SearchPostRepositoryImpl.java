@@ -30,7 +30,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
     }
 
     @Override
-    public PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category, String[] tags,
+    public PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category,
             Pageable pageable) {
         QPosts posts = QPosts.posts;
         QPostTag postTag = QPostTag.postTag;

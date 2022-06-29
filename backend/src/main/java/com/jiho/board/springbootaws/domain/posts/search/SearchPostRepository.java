@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 
 public interface SearchPostRepository {
-    PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category, String[] tags, Pageable pageable);
+    PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category, Pageable pageable);
 }

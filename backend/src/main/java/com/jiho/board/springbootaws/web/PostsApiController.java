@@ -2,9 +2,10 @@ package com.jiho.board.springbootaws.web;
 
 import com.jiho.board.springbootaws.domain.member.MemberRole;
 import com.jiho.board.springbootaws.service.posts.PostsService;
-import com.jiho.board.springbootaws.web.dto.posts.PostsListResponseDto;
+import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
+import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
 
 import org.springframework.data.domain.Pageable;
@@ -32,11 +33,12 @@ public class PostsApiController {
     }
 
     @GetMapping("/api/v1/posts")
-    public PostsListResponseDto getList(
-            @RequestParam(value = "title", required = false, defaultValue = "") String title,
-            @RequestParam(value = "content", required = false, defaultValue = "") String content,
+    public PageResultDto<PostsTagResultDto, PostsTagResultDto> getList(
+            @RequestParam(value = "title", required = false, defaultValue = "") String type,
+            @RequestParam(value = "content", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "category", required = false, defaultValue = "") String category,
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return postsService.getList(title, content, pageable);
+        return postsService.getList(type, keyword, category, pageable);
     }
 
     @GetMapping("/api/v1/posts/{id}")
