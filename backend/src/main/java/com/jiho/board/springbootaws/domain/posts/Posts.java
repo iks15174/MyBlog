@@ -18,11 +18,17 @@ import com.jiho.board.springbootaws.domain.BaseTimeEntity;
 import com.jiho.board.springbootaws.domain.comments.Comments;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postLike.PostLike;
+import com.jiho.board.springbootaws.domain.postTag.PostTag;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@AllArgsConstructor
+@Builder
+@ToString
 @Getter
 @NoArgsConstructor
 @Entity
@@ -40,19 +46,6 @@ public class Posts extends BaseTimeEntity {
     @ManyToOne
     @JoinColumn(name = "author_id")
     private Member author;
-
-    @OneToMany(mappedBy = "posts", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<Comments> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "posts", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<PostLike> likes = new ArrayList<>();
-
-    @Builder
-    public Posts(String title, String content, Member author) {
-        this.title = title;
-        this.content = content;
-        this.author = author;
-    }
 
     public void update(String title, String content) {
         this.title = title;

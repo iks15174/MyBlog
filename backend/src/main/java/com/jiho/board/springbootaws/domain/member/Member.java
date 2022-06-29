@@ -54,18 +54,6 @@ public class Member extends BaseTimeEntity {
     @Builder.Default
     private Set<MemberRole> roleSet = new HashSet<>();
 
-    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Comments> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Posts> posts = new ArrayList<>();
-
-    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<PostLike> likes = new ArrayList<>();
-
     public void addMemberRole(MemberRole memberRole) {
         this.roleSet.add(memberRole);
     }
