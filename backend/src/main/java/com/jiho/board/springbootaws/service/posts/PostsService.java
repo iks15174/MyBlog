@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-public class PostsService {
+public class PostsService{
     private final PostsRepository postsRepository;
     private final MemberRepository memberRepository;
 
