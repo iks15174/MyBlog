@@ -8,6 +8,7 @@ import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
+import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class PostsService{
     private final PostsRepository postsRepository;
     private final MemberRepository memberRepository;
+    private final TagRepository tagRepository;
 
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
@@ -36,7 +38,11 @@ public class PostsService{
         Member author = memberRepository
                 .findByEmailAndSocial(memberDto.getUsername(), memberDto.getSocial())
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
-
+        requestDto.getTagDto().forEach(t -> { // 존재하지 않는 Tag id일 경우
+            if(!tagRepository.existsById(t.getId())){
+                throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        });
         return postsRepository.save(requestDto.addMember(author).toEntity()).getId();
     }
 
