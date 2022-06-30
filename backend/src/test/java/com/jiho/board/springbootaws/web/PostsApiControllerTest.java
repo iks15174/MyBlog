@@ -4,9 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.Social;
+import com.jiho.board.springbootaws.domain.postTag.PostTag;
+import com.jiho.board.springbootaws.domain.postTag.PostTagRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
+import com.jiho.board.springbootaws.domain.tag.Tag;
+import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.util.security.WithMockCustomUser;
+import com.jiho.board.springbootaws.web.dto.common.TagDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
@@ -33,6 +38,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PostsApiControllerTest {
@@ -54,11 +62,18 @@ public class PostsApiControllerTest {
         private MemberRepository memberRepository;
 
         @Autowired
+        private PostTagRepository postTagRepository;
+
+        @Autowired
+        private TagRepository tagRepository;
+
+        @Autowired
         private PasswordEncoder passwordEncoder;
 
         @AfterEach
         public void tearDown() throws Exception {
                 postsRepository.deleteAll();
+                tagRepository.deleteAll();
                 memberRepository.deleteAll();
         }
 
@@ -126,10 +141,12 @@ public class PostsApiControllerTest {
         public void Posts_등록된다() throws Exception {
                 String title = "title";
                 String content = "content";
+                List<Tag> tags = createTags(10);
 
                 PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                                 .title(title)
                                 .content(content)
+                                .tagDto(tags.stream().map(e -> new TagDto(e)).collect(Collectors.toList()))
                                 .build();
 
                 String url = "http://localhost:" + port + "/api/v1/posts";
@@ -141,8 +158,13 @@ public class PostsApiControllerTest {
                                 .andExpect(status().isOk());
 
                 List<Posts> all = postsRepository.findAll();
+                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(all.get(0).getId());
                 assertThat(all.get(0).getTitle()).isEqualTo(title);
                 assertThat(all.get(0).getContent()).isEqualTo(content);
+                allPostTag.forEach(pt -> {
+                        assertThat(tags.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
+                                        .findAny().orElse(null)).isNotEqualTo(null);
+                });
         }
 
         @Test
@@ -199,5 +221,15 @@ public class PostsApiControllerTest {
                 }
                 postsRepository.saveAll(result);
                 return result;
+        }
+
+        private List<Tag> createTags(int tagNums){
+                String baseTagName = "tag";
+                List<Tag> tags = new ArrayList<>();
+                IntStream.rangeClosed(1, tagNums).forEach(i -> {
+                        tags.add(Tag.builder().name(baseTagName + i).build());
+                });
+                tagRepository.saveAll(tags);
+                return tags;
         }
 }
