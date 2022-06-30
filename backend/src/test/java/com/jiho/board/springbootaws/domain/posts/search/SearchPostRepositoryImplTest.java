@@ -96,7 +96,7 @@ public class SearchPostRepositoryImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
-        Page<PostsTagResultDto> postList = postsRepository.searchPost("", "", "", null, pageable);
+        Page<PostsTagResultDto> postList = postsRepository.searchPost("", "", "", pageable);
         for(PostsTagResultDto ptd: postList.getContent()){
             assertThat(ptd.getTags().size()).isEqualTo(tagPerPost.get(ptd.getId()));
         }
