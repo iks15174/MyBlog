@@ -1,6 +1,8 @@
 package com.jiho.board.springbootaws.service.posts;
 
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -38,11 +40,11 @@ public class PostsService{
         Member author = memberRepository
                 .findByEmailAndSocial(memberDto.getUsername(), memberDto.getSocial())
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
-        requestDto.getTagDto().forEach(t -> { // 존재하지 않는 Tag id일 경우
-            if(!tagRepository.existsById(t.getId())){
-                throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
-            }
-        });
+        Set<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toSet());
+        Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
+        if(tagIds.size() != tagCnt) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
+        }
         return postsRepository.save(requestDto.addMember(author).toEntity()).getId();
     }
 
