@@ -61,9 +61,14 @@ public class PostsService{
 
     @Transactional
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
-        Posts entity = postsRepository.findById(id)
+        Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
-        entity.update(requestDto.getTitle(), requestDto.getContent());
+        requestDto.getTags().forEach(t -> { // 존재하지 않는 Tag id일 경우
+            if(!tagRepository.existsById(t.getId())){
+                throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        });
+        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags());
         return id;
     }
 }
