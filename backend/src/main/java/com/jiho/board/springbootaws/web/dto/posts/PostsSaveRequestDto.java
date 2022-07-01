@@ -31,7 +31,7 @@ public class PostsSaveRequestDto {
     public Posts toEntity() {
         Posts post = Posts.builder().title(title).content(content)
                         .author(author).build();
-        post.setTags(toPostTagEntity(post));
+        post.updateTags(toPostTagEntity(post));
         return post;
     }
 
