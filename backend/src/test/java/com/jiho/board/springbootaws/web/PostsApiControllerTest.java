@@ -160,6 +160,7 @@ public class PostsApiControllerTest {
                 List<PostTag> allPostTag = postTagRepository.findAllByPostsId(all.get(0).getId());
                 assertThat(all.get(0).getTitle()).isEqualTo(title);
                 assertThat(all.get(0).getContent()).isEqualTo(content);
+                assertThat(allPostTag.size()).isEqualTo(10);
                 allPostTag.forEach(pt -> {
                         assertThat(tags.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
                                         .findAny().orElse(null)).isNotEqualTo(null);
