@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PostsApiControllerTest {
 
@@ -141,7 +140,7 @@ public class PostsApiControllerTest {
         public void Posts_등록된다() throws Exception {
                 String title = "title";
                 String content = "content";
-                List<Tag> tags = createTags(10);
+                List<Tag> tags = createTags(1, 10);
 
                 PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                                 .title(title)
@@ -170,15 +169,26 @@ public class PostsApiControllerTest {
         @Test
         @WithMockCustomUser
         void Posts_수정된다() throws Exception {
-                Posts savedPosts = postsRepository
-                                .save(Posts.builder().title("title").content("content").build());
+                List<Tag> oldTag = createTags(1, 2);
+
+                Posts tempPost = Posts.builder().title("title").content("content").build();
+                List<PostTag> postTag = oldTag.stream()
+                                                .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
+                                                .collect(Collectors.toList());
+                tempPost.updateTags(postTag);
+                Posts savedPosts = postsRepository.save(tempPost);
+                
                 Long updateId = savedPosts.getId();
                 String updatedTitle = "title-update";
                 String updatedContent = "content-update";
+                oldTag.remove(0);
+                List<Tag> newTag = createTags(3, 4);
+                newTag.addAll(oldTag);
 
                 PostsUpdateRequestDto requestDto = PostsUpdateRequestDto.builder()
                                 .title(updatedTitle)
                                 .content(updatedContent)
+                                .tags(newTag.stream().map(nt -> new TagDto(nt)).collect(Collectors.toList()))
                                 .build();
 
                 String url = "http://localhost:" + port + "/api/v1/posts/" + updateId;
@@ -192,7 +202,11 @@ public class PostsApiControllerTest {
                 List<Posts> all = postsRepository.findAll();
                 assertThat(all.get(0).getTitle()).isEqualTo(updatedTitle);
                 assertThat(all.get(0).getContent()).isEqualTo(updatedContent);
-
+                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(all.get(0).getId());
+                allPostTag.forEach(pt -> {
+                        assertThat(newTag.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
+                                        .findAny().orElse(null)).isNotEqualTo(null);
+                });
         }
 
         @Test
@@ -223,10 +237,10 @@ public class PostsApiControllerTest {
                 return result;
         }
 
-        private List<Tag> createTags(int tagNums){
+        private List<Tag> createTags(int start, int end){
                 String baseTagName = "tag";
                 List<Tag> tags = new ArrayList<>();
-                IntStream.rangeClosed(1, tagNums).forEach(i -> {
+                IntStream.rangeClosed(start, end).forEach(i -> {
                         tags.add(Tag.builder().name(baseTagName + i).build());
                 });
                 tagRepository.saveAll(tags);
