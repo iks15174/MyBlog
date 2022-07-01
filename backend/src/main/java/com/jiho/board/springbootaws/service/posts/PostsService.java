@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-public class PostsService{
+public class PostsService {
     private final PostsRepository postsRepository;
     private final MemberRepository memberRepository;
     private final TagRepository tagRepository;
@@ -42,16 +42,18 @@ public class PostsService{
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
         Set<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toSet());
         Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
-        if(tagIds.size() != tagCnt) {
+        if (tagIds.size() != tagCnt) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
         }
         return postsRepository.save(requestDto.addMember(author).toEntity()).getId();
     }
 
     @Transactional
-    public PageResultDto<PostsTagResultDto, PostsTagResultDto> getList(String type, String keyword, String category, Pageable pageable) {
+    public PageResultDto<PostsTagResultDto, PostsTagResultDto> getList(String type, String keyword, String category,
+            Pageable pageable) {
         Function<PostsTagResultDto, PostsTagResultDto> fn = (result -> result);
-        return new PageResultDto<PostsTagResultDto, PostsTagResultDto>(postsRepository.searchPost(type, keyword, category, pageable), fn);
+        return new PageResultDto<PostsTagResultDto, PostsTagResultDto>(
+                postsRepository.searchPost(type, keyword, category, pageable), fn);
     }
 
     @Transactional
@@ -65,11 +67,11 @@ public class PostsService{
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
         Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
-        requestDto.getTags().forEach(t -> { // 존재하지 않는 Tag id일 경우
-            if(!tagRepository.existsById(t.getId())){
-                throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
-            }
-        });
+        Set<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toSet());
+        Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
+        if (tagIds.size() != tagCnt) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
+        }
         entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags());
         return id;
     }
