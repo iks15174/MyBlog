@@ -58,7 +58,7 @@ public class PostsService {
 
     @Transactional
     public PostsResponseDto findById(Long id) {
-        Posts entity = postsRepository.findById(id)
+        Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
         return new PostsResponseDto(entity);
     }
