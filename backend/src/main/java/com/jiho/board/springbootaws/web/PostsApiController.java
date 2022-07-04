@@ -34,8 +34,8 @@ public class PostsApiController {
 
     @GetMapping("/api/v1/posts")
     public PageResultDto<PostsTagResultDto, PostsTagResultDto> getList(
-            @RequestParam(value = "title", required = false, defaultValue = "") String type,
-            @RequestParam(value = "content", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "type", required = false, defaultValue = "") String type,
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(value = "category", required = false, defaultValue = "") String category,
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         return postsService.getList(type, keyword, category, pageable);
