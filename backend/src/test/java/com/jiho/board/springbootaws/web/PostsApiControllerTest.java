@@ -16,6 +16,7 @@ import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,14 +95,20 @@ public class PostsApiControllerTest {
         @Test
         public void Post_불러온다() throws Exception {
                 List<Posts> post = createPosts(1);
+                List<Tag> tags = createTags(1, 10);
+                tags.forEach(t -> {
+                        postTagRepository.save(PostTag.builder()
+                                        .posts(post.get(0))
+                                        .tag(t).build());
+                });
                 String url = "http://localhost:" + port + "/api/v1/posts/" + post.get(0).getId();
 
                 mvc.perform(get(url))
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(post.get(0).getId()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(post.get(0).getTitle()))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(0).getContent()));
-
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(0).getContent()))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.tags.[*].name", Matchers.containsInAnyOrder(tags.stream().map(t -> t.getName()).toArray())));
         }
 
         @Test
@@ -174,11 +181,11 @@ public class PostsApiControllerTest {
 
                 Posts tempPost = Posts.builder().title("title").content("content").build();
                 List<PostTag> postTag = oldTag.stream()
-                                                .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
-                                                .collect(Collectors.toList());
+                                .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
+                                .collect(Collectors.toList());
                 tempPost.updateTags(postTag);
                 Posts savedPosts = postsRepository.save(tempPost);
-                
+
                 Long updateId = savedPosts.getId();
                 String updatedTitle = "title-update";
                 String updatedContent = "content-update";
@@ -238,7 +245,7 @@ public class PostsApiControllerTest {
                 return result;
         }
 
-        private List<Tag> createTags(int start, int end){
+        private List<Tag> createTags(int start, int end) {
                 String baseTagName = "tag";
                 List<Tag> tags = new ArrayList<>();
                 IntStream.rangeClosed(start, end).forEach(i -> {
