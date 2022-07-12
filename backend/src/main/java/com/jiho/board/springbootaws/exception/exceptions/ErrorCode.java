@@ -13,10 +13,14 @@ public enum ErrorCode {
     UNEIXIST_USER(401, "B002", "Can't find user by Email and Social"),
 
     // Post
-    UNEIXIST_POST(404, "C002", "Can't find post by id"),
+    UNEIXIST_POST(404, "C001", "Can't find post by id"),
 
     // Comment
-    UNEIXIST_COMMENT(404, "C002", "Can't find comment by id");
+    UNEIXIST_COMMENT(404, "D001", "Can't find comment by id"),
+
+    // Tag
+    TAG_DUPLICATED_ERROR(400, "E001", " Duplicated tag");
+
 
     private int status;
     private final String code;
