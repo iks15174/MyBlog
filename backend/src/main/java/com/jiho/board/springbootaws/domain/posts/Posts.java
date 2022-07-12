@@ -17,7 +17,7 @@ import javax.persistence.OneToMany;
 import com.jiho.board.springbootaws.domain.BaseTimeEntity;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
-import com.jiho.board.springbootaws.web.dto.common.TagDto;
+import com.jiho.board.springbootaws.web.dto.posts.TagDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

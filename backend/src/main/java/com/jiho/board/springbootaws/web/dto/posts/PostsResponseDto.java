@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.domain.posts.Posts;
-import com.jiho.board.springbootaws.web.dto.common.TagDto;
 
 import lombok.Getter;
 

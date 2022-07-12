@@ -2,8 +2,6 @@ package com.jiho.board.springbootaws.web.dto.posts;
 
 import java.util.List;
 
-import com.jiho.board.springbootaws.web.dto.common.TagDto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

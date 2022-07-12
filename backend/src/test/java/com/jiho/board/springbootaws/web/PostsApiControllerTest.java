@@ -11,10 +11,10 @@ import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.util.security.WithMockCustomUser;
-import com.jiho.board.springbootaws.web.dto.common.TagDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
+import com.jiho.board.springbootaws.web.dto.posts.TagDto;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
