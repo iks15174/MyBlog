@@ -120,25 +120,25 @@ public class PostsApiControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.totalPage").value(2))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.page").value(0))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[0].title").value("title0"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[0].content").value("content0"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[9].title").value("title9"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[9].content").value("content9"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.length()").value(10));
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title0"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content0"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].title").value("title9"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].content").value("content9"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.length()").value(10));
         }
 
         @Test
         public void PostsList_검색한다() throws Exception {
                 createPosts(11); // title0, content0 ~ title10, content10 post가 만들어진다.
-                String url = "http://localhost:" + port + "/api/v1/posts" + "?title=2&content=2"; // 하나가 검색되야 한다.
+                String url = "http://localhost:" + port + "/api/v1/posts" + "?type=tc&keyword=2"; // 하나가 검색되야 한다.
 
                 mvc.perform(get(url))
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.totalPage").value(1))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.page").value(0))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[0].title").value("title2"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.[0].content").value("content2"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.postsList.length()").value(1));
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title2"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content2"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.length()").value(1));
 
         }
 
