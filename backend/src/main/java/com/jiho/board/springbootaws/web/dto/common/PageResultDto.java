@@ -10,12 +10,12 @@ import lombok.Getter;
 
 @Getter
 public class PageResultDto<DTO, EN> {
-    private List<DTO> dtoList;
-    private PageInfoDto pageinfo;
+    private List<DTO> data;
+    private PageInfoDto pageInfo;
     
     public PageResultDto(Page<EN> result, Function<EN, DTO> fn){
-        this.dtoList = result.getContent().stream()
+        this.data = result.getContent().stream()
                                 .map(fn).collect(Collectors.toList());
-        this.pageinfo = new PageInfoDto(result);
+        this.pageInfo = new PageInfoDto(result);
     }
 }

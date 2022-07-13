@@ -55,9 +55,6 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
             }
             booleanBuilder.and(conditionBuilder);
         }
-        JPQLQuery<Posts> result = jpqlQueryPost.select(posts);
-        result.where(booleanBuilder);
-        result.groupBy(posts);
         JPQLQuery<Posts> postResult = jpqlQueryPost.select(posts);
         postResult.where(booleanBuilder);
         Sort sort = pageable.getSort();
@@ -68,7 +65,6 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
             PathBuilder<Posts> orderByExpression = new PathBuilder<Posts>(Posts.class, "posts");
             postResult.orderBy(new OrderSpecifier(direction, orderByExpression.get(prop)));
         });
-        postResult.groupBy(posts);
         postResult.offset(pageable.getOffset());
         postResult.limit(pageable.getPageSize());
         List<Posts> postList = postResult.fetch();
@@ -111,7 +107,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
             }
         }
 
-        long count = postList.size();
+        long count = postResult.fetchCount();
         return new PageImpl<PostsTagResultDto>(
                 postsTagResultDtos,
                 pageable,
