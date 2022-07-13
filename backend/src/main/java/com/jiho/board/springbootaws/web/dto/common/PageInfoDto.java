@@ -1,7 +1,5 @@
 package com.jiho.board.springbootaws.web.dto.common;
 
-import com.jiho.board.springbootaws.domain.posts.Posts;
-
 import org.springframework.data.domain.Page;
 
 import lombok.Getter;

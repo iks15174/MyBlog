@@ -2,7 +2,6 @@ package com.jiho.board.springbootaws.util.security;
 
 import java.util.Arrays;
 
-import com.jiho.board.springbootaws.domain.member.Social;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

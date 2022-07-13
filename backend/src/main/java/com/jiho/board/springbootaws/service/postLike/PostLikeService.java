@@ -1,7 +1,5 @@
 package com.jiho.board.springbootaws.service.postLike;
 
-import java.util.Optional;
-
 import javax.transaction.Transactional;
 
 import com.jiho.board.springbootaws.domain.member.Member;

@@ -1,7 +1,6 @@
 package com.jiho.board.springbootaws.service.tag;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;

@@ -1,7 +1,6 @@
 package com.jiho.board.springbootaws.service.member.dto;
 
 import java.util.Map;
-import java.util.UUID;
 
 import com.jiho.board.springbootaws.domain.member.Social;
 

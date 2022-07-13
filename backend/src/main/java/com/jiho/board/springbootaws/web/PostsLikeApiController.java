@@ -1,7 +1,5 @@
 package com.jiho.board.springbootaws.web;
 
-import java.security.Principal;
-
 import com.jiho.board.springbootaws.domain.member.MemberRole;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.service.postLike.PostLikeService;
