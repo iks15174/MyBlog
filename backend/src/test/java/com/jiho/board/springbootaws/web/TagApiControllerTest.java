@@ -17,12 +17,14 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
+import com.jiho.board.springbootaws.domain.member.MemberRole;
 import com.jiho.board.springbootaws.domain.member.Social;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.domain.postTag.PostTagRepository;
@@ -141,6 +143,26 @@ public class TagApiControllerTest {
             actions = actions.andExpect(
                     MockMvcResultMatchers.jsonPath("$.[" + i + "].postCnt").value(tagsContainOne.get(i).getPostCnt()));
         }
+    }
+
+    @Test
+    @WithMockCustomUser(role = MemberRole.ADMIN)
+    public void Tag_수정한다() throws Exception {
+        String updatedTagName = "updateTag";
+        List<TagResponseDto> tag = createTagsWithPost(1, 1);
+        TagSaveRequestDto requestDto = TagSaveRequestDto.builder().name(updatedTagName).build();
+
+        String url = "http://localhost:" + port + "/api/v1/tags/" + tag.get(0).getId();
+        mvc.perform(put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
+
+        Optional<Tag> updatedTag = tagRepository.findById(tag.get(0).getId());
+        assertThat(updatedTag.isPresent()).isTrue();
+        assertThat(updatedTag.get().getName()).isEqualTo(updatedTagName);
+
     }
 
     private List<TagResponseDto> createTagsWithPost(int start, int end) {
