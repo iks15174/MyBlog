@@ -25,20 +25,23 @@ public class TagRepositoryTest {
     @Test
     public void 모든태그가져오기() {
         List<Tag> tags = createTags(1, 10);
-        List<Tag> result = tagRepository.findAllByName("");
-        tags.stream().forEach(expectedTag -> {
-            assertThat(expectedTag.getName()).isIn(result.stream().map(r -> r.getName()).collect(Collectors.toList()));
+        List<Object[]> result = tagRepository.findAllByName("");
+        result.forEach(r -> {
+            assertThat((Long)r[1]).isEqualTo(0);
+        });
+        tags.forEach(expectedTag -> {
+            assertThat(expectedTag.getName()).isIn(result.stream().map(r -> ((Tag)r[0]).getName()).collect(Collectors.toList()));
         });
     }
 
     @Test
     public void 태그이름으로_검색하기() {
         List<Tag> tags = createTags(1, 10);
-        List<Tag> result = tagRepository.findAllByName("1");
+        List<Object[]> result = tagRepository.findAllByName("1");
         List<Tag> tagsWithOne = tags.stream().filter(t -> t.getName().contains("1")).collect(Collectors.toList());
 
-        tagsWithOne.stream().forEach(expectedTag -> {
-            assertThat(expectedTag.getName()).isIn(result.stream().map(r -> r.getName()).collect(Collectors.toList()));
+        tagsWithOne.forEach(expectedTag -> {
+            assertThat(expectedTag.getName()).isIn(result.stream().map(r -> ((Tag)r[0]).getName()).collect(Collectors.toList()));
         });
     }
 

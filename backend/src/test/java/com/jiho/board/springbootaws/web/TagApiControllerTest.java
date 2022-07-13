@@ -24,10 +24,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.Social;
+import com.jiho.board.springbootaws.domain.postTag.PostTag;
+import com.jiho.board.springbootaws.domain.postTag.PostTagRepository;
+import com.jiho.board.springbootaws.domain.posts.Posts;
+import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.util.security.WithMockCustomUser;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
+import com.jiho.board.springbootaws.web.dto.tag.TagResponseDto;
 import com.jiho.board.springbootaws.web.dto.tag.TagSaveRequestDto;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -52,6 +57,12 @@ public class TagApiControllerTest {
     private TagRepository tagRepository;
 
     @Autowired
+    private PostsRepository postsRepository;
+
+    @Autowired
+    private PostTagRepository postTagRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     @Autowired
@@ -59,6 +70,7 @@ public class TagApiControllerTest {
 
     @AfterEach
     public void clean() {
+        postsRepository.deleteAll();
         tagRepository.deleteAll();
         memberRepository.deleteAll();
     }
@@ -105,31 +117,49 @@ public class TagApiControllerTest {
 
     @Test
     public void Tag_가져온다() throws Exception {
-        List<Tag> tags = createTags(1, 10);
+        List<TagResponseDto> tags = createTagsWithPost(1, 10);
         String url = "http://localhost:" + port + "/api/v1/tags";
         ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
-        for (int i = 0; i < tags.size(); i++){
-            actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(tags.get(i).getName()));
+        for (int i = 0; i < tags.size(); i++) {
+            actions = actions
+                    .andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(tags.get(i).getName()));
+            actions = actions.andExpect(
+                    MockMvcResultMatchers.jsonPath("$.[" + i + "].postCnt").value(tags.get(i).getPostCnt()));
         }
     }
 
     @Test
     public void Tag_검색한다() throws Exception {
-        List<Tag> tags = createTags(1, 10);
-        List<Tag> tagsContainOne = tags.stream().filter(t -> t.getName().contains("1")).collect(Collectors.toList());
+        List<TagResponseDto> tags = createTagsWithPost(1, 10);
+        List<TagResponseDto> tagsContainOne = tags.stream().filter(t -> t.getName().contains("1"))
+                .collect(Collectors.toList());
         String url = "http://localhost:" + port + "/api/v1/tags" + "?name=1";
         ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
-        for (int i = 0; i < tagsContainOne.size(); i++){
-            actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(tagsContainOne.get(i).getName()));
+        for (int i = 0; i < tagsContainOne.size(); i++) {
+            actions = actions.andExpect(
+                    MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(tagsContainOne.get(i).getName()));
+            actions = actions.andExpect(
+                    MockMvcResultMatchers.jsonPath("$.[" + i + "].postCnt").value(tagsContainOne.get(i).getPostCnt()));
         }
     }
 
-    private List<Tag> createTags(int start, int end) {
+    private List<TagResponseDto> createTagsWithPost(int start, int end) {
         String baseTagName = "tag";
-        List<Tag> tags = new ArrayList<>();
+        String baseTitle = "postTitle";
+        String baseContent = "postContent";
+
+        List<TagResponseDto> result = new ArrayList<>();
         IntStream.rangeClosed(start, end).forEach(i -> {
-            tags.add(Tag.builder().name(baseTagName + i).build());
+            Tag tag = Tag.builder().name(baseTagName + i).build();
+            tagRepository.save(tag);
+            IntStream.rangeClosed(start, i).forEach(j -> {
+                Posts posts = Posts.builder().title(baseTitle).author(testMember).content(baseContent).build();
+                postsRepository.save(posts);
+                postTagRepository.save(PostTag.builder().posts(posts).tag(tag).build());
+            });
+            result.add(TagResponseDto.builder().id(tag.getId()).name(tag.getName()).postCnt((long) (i - start + 1))
+                    .build());
         });
-        return tagRepository.saveAll(tags);
+        return result;
     }
 }
