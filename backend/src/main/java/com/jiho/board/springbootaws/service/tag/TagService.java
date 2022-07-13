@@ -7,10 +7,11 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
-import com.jiho.board.springbootaws.web.dto.common.TagDto;
+import com.jiho.board.springbootaws.web.dto.tag.TagResponseDto;
 import com.jiho.board.springbootaws.web.dto.tag.TagSaveRequestDto;
 
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,8 @@ public class TagService {
     private final TagRepository tagRepository;
 
     @Transactional
-    public List<TagDto> getList(String name) {
-        return tagRepository.findAllByName(name).stream().map(tagEntity -> new TagDto(tagEntity))
+    public List<TagResponseDto> getList(String name) {
+        return tagRepository.findAllByName(name).stream().map(tagObj -> new TagResponseDto((Tag) tagObj[0], (Long)tagObj[1]))
                 .collect(Collectors.toList());
     }
 
