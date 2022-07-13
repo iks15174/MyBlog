@@ -19,7 +19,9 @@ public enum ErrorCode {
     UNEIXIST_COMMENT(404, "D001", "Can't find comment by id"),
 
     // Tag
-    TAG_DUPLICATED_ERROR(400, "E001", " Duplicated tag");
+    TAG_DUPLICATED_ERROR(400, "E001", " Duplicated tag"),
+    UNEIXIST_TAG(404, "E002", "Can't find tag by id");
+
 
 
     private int status;

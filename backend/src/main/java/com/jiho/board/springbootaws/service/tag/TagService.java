@@ -1,6 +1,7 @@
 package com.jiho.board.springbootaws.service.tag;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -33,5 +34,16 @@ public class TagService {
             throw new CustomBasicException(ErrorCode.TAG_DUPLICATED_ERROR);
         }
         return tagRepository.save(requestDto.toEntity()).getId();
+    }
+
+    @Transactional
+    public Long update(Long id, TagSaveRequestDto requestDto){
+        if(requestDto.getName() == "") {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        Tag tag = tagRepository.findById(id).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_TAG));
+        tag.update(requestDto.getName());
+        return tag.getId();
+
     }
 }
