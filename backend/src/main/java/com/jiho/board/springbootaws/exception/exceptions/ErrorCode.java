@@ -20,7 +20,10 @@ public enum ErrorCode {
 
     // Tag
     TAG_DUPLICATED_ERROR(400, "E001", " Duplicated tag"),
-    UNEIXIST_TAG(404, "E002", "Can't find tag by id");
+    UNEIXIST_TAG(404, "E002", "Can't find tag by id"),
+
+    // Category
+    CATEGORY_DUPLICATED_ERROR(400, "F001", "Duplicated category");
 
 
 
