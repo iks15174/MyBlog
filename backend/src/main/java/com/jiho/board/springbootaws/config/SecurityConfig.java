@@ -1,6 +1,7 @@
 package com.jiho.board.springbootaws.config;
 
 import com.jiho.board.springbootaws.config.filter.JwtFilter;
+import com.jiho.board.springbootaws.config.handler.CustomAuthenticationEntryPoint;
 import com.jiho.board.springbootaws.config.handler.OAuth2SuccessHandler;
 import com.jiho.board.springbootaws.util.JWTUtil;
 
@@ -24,6 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JWTUtil jwtUtil;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -35,11 +37,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/api/v1/auth/**", "/h2-console/**", "/web-resources/**").permitAll()
-                .antMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .antMatchers("/api/v1/**", "/h2-console/**", "/web-resources/**").permitAll()
+                // .antMatchers("/api/v1/auth/**", "/h2-console/**", "/web-resources/**").permitAll()
                 .and()
                 .oauth2Login()
-                .successHandler(oAuth2SuccessHandler);
+                .successHandler(oAuth2SuccessHandler)
+                .and()
+                .exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
 
         http.csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
