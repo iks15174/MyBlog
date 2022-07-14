@@ -15,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import com.jiho.board.springbootaws.domain.BaseTimeEntity;
+import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.web.dto.posts.TagDto;
@@ -44,6 +45,9 @@ public class Posts extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member author;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Category category;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy="posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostTag> tags = new ArrayList<>();
