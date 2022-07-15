@@ -10,6 +10,7 @@ import com.jiho.board.springbootaws.web.dto.comments.CommentsUpdateRequestDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,7 @@ public class CommentsApiController {
     }
 
     @Secured(MemberRole.ROLES.USER)
+    @PostAuthorize("isAuthenticated() and (( returnObject.name == principal.name ) or hasRole('ROLE_ADMIN'))")
     @PutMapping("/api/v1/comments/{id}")
     public CommentsResponseDto updateComment(@PathVariable Long id, @RequestBody CommentsUpdateRequestDto requestDto) {
         return commentsService.update(id, requestDto);
