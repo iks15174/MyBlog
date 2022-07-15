@@ -1,10 +1,17 @@
 package com.jiho.board.springbootaws.domain.category;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +36,12 @@ public class Category {
 
     @Column
     private Boolean isParent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Category parentCategory;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "parentCategory", cascade = CascadeType.ALL)
+    private Set<Category> subCategories = new HashSet<>();
+
 }
