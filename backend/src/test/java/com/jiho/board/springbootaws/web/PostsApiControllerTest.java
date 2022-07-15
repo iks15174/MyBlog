@@ -183,8 +183,7 @@ public class PostsApiControllerTest {
                 List<PostTag> postTag = oldTag.stream()
                                 .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
                                 .collect(Collectors.toList());
-                tempPost.setTags(postTag);
-                Posts savedPosts = postsRepository.save(tempPost);
+                Posts savedPosts = postsRepository.save(tempPost.setTags(postTag));
 
                 Long updateId = savedPosts.getId();
                 String updatedTitle = "title-update";

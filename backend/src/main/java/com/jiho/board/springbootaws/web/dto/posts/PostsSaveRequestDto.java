@@ -39,8 +39,7 @@ public class PostsSaveRequestDto {
     public Posts toEntity() {
         Posts post = Posts.builder().title(title).content(content).category(category)
                 .author(author).build();
-        post.setTags(toPostTagEntity(post));
-        return post;
+        return post.setTags(toPostTagEntity(post));
     }
 
     private List<PostTag> toPostTagEntity(Posts post) {
