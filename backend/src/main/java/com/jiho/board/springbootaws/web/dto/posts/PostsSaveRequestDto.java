@@ -23,22 +23,8 @@ public class PostsSaveRequestDto {
     private Long categoryId;
     private List<TagDto> tagDto;
 
-    private Member author;
-    private Category category;
-
-    public PostsSaveRequestDto addMember(Member author) {
-        this.author = author;
-        return this;
-    }
-
-    public PostsSaveRequestDto addCategory(Category category) {
-        this.category = category;
-        return this;
-    }
-
     public Posts toEntity() {
-        Posts post = Posts.builder().title(title).content(content).category(category)
-                .author(author).build();
+        Posts post = Posts.builder().title(title).content(content).build();
         return post.setTags(toPostTagEntity(post));
     }
 

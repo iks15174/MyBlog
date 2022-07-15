@@ -45,7 +45,7 @@ public class PostsService {
         if (tagIds.size() != tagCnt) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
         }
-        return postsRepository.save(requestDto.addMember(author).toEntity()).getId();
+        return postsRepository.save(requestDto.toEntity().setAuthor(author)).getId();
     }
 
     @Transactional
