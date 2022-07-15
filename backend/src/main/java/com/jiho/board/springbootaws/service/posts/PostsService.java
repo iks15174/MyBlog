@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.jiho.board.springbootaws.domain.category.Category;
+import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
@@ -32,6 +34,7 @@ public class PostsService {
     private final PostsRepository postsRepository;
     private final MemberRepository memberRepository;
     private final TagRepository tagRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
@@ -40,12 +43,16 @@ public class PostsService {
         Member author = memberRepository
                 .findByEmailAndSocial(memberDto.getUsername(), memberDto.getSocial())
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
+        Category category = categoryRepository.findById(requestDto.getCategoryId()).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        if(category.getIsParent()){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         Set<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toSet());
         Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
         if (tagIds.size() != tagCnt) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
         }
-        return postsRepository.save(requestDto.toEntity().setAuthor(author)).getId();
+        return postsRepository.save(requestDto.toEntity().setAuthor(author).setCategory(category)).getId();
     }
 
     @Transactional
