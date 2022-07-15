@@ -23,7 +23,8 @@ public enum ErrorCode {
     UNEIXIST_TAG(404, "E002", "Can't find tag by id"),
 
     // Category
-    CATEGORY_DUPLICATED_ERROR(400, "F001", "Duplicated category");
+    CATEGORY_DUPLICATED_ERROR(400, "F001", "Duplicated category"),
+    UNEXIST_CATEGORY_ERROR(404, "F002", "Can't find category");
 
 
 
