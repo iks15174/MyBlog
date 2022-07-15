@@ -1,12 +1,17 @@
 package com.jiho.board.springbootaws.service.category;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
+import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
+import com.jiho.board.springbootaws.web.dto.category.CategoryResponseDto;
 import com.jiho.board.springbootaws.web.dto.category.CategorySaveRequestDto;
 
 import lombok.RequiredArgsConstructor;
@@ -22,5 +27,15 @@ public class CategoryService {
             throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
         }
         return categoryRepository.save(requestDto.toEntity()).getId();
+    }
+
+    @Transactional
+    public List<CategoryResponseDto> getList() {
+        List<Object[]> entities = categoryRepository.findAllWithPostCnt();
+        return entities.stream().map(entity -> {
+            CategoryResponseDto responseDto = new CategoryResponseDto((Category) entity[0]);
+            responseDto.setPostCnt((Long) entity[1]);
+            return responseDto;
+        }).collect(Collectors.toList());
     }
 }
