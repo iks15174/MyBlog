@@ -1,6 +1,7 @@
 package com.jiho.board.springbootaws.domain.category;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +14,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     "FROM Category c left outer join Posts p on p.category = c " + 
     "group by c ")
     List<Object[]> findAllWithPostCnt();
+
+    Optional<Category> findByIsParent(boolean b);
 }

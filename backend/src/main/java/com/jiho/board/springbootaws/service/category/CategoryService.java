@@ -22,11 +22,16 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public Long save(CategorySaveRequestDto requestDto){
-        if(categoryRepository.existsByNameAndIsParent(requestDto.getName(), requestDto.getIsParent())){
+    public Long save(CategorySaveRequestDto requestDto) {
+        if (categoryRepository.existsByNameAndIsParent(requestDto.getName(), requestDto.getIsParent())) {
             throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
         }
-        return categoryRepository.save(requestDto.toEntity()).getId();
+        Category parent = null;
+        if (!requestDto.getIsParent()) {
+            parent = categoryRepository.findById(requestDto.getParentId())
+                    .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        }
+        return categoryRepository.save(requestDto.toEntity(parent)).getId();
     }
 
     @Transactional

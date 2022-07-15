@@ -14,8 +14,9 @@ import lombok.NoArgsConstructor;
 public class CategorySaveRequestDto {
     private String name;
     private Boolean isParent;
+    private Long parentId;
 
-    public Category toEntity() {
-        return Category.builder().name(name).isParent(isParent).build();
+    public Category toEntity(Category parent) {
+        return Category.builder().name(name).isParent(isParent).parentCategory(parent).build();
     }
 }
