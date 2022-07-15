@@ -74,12 +74,16 @@ public class PostsService {
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
         Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
+        Category category = categoryRepository.findById(requestDto.getCategoryId()).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        if(category.getIsParent()){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         Set<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toSet());
         Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
         if (tagIds.size() != tagCnt) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
         }
-        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags());
+        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), category);
         return id;
     }
 }

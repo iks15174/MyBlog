@@ -52,7 +52,7 @@ public class Posts extends BaseTimeEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy="posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostTag> tags = new ArrayList<>();
 
-    public void update(String title, String content, List<TagDto> tagDtos) {
+    public void update(String title, String content, List<TagDto> tagDtos, Category category) {
         this.title = title;
         this.content = content;
         List<PostTag> removeItem = this.tags.stream()
@@ -66,6 +66,7 @@ public class Posts extends BaseTimeEntity {
                                         .map(tds -> tds.toEntity())
                                         .map(ten -> PostTag.builder().posts(this).tag(ten).build())
                                         .collect(Collectors.toList());
+        this.category = category;
         this.tags.addAll(addItem);
     }
 
