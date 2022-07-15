@@ -69,7 +69,7 @@ public class Posts extends BaseTimeEntity {
         this.tags.addAll(addItem);
     }
 
-    public void updateTags(List<PostTag> ptags) {
+    public void setTags(List<PostTag> ptags) {
         this.tags = ptags;
     }
 }

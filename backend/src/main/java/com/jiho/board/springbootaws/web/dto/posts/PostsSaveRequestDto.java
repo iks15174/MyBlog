@@ -3,6 +3,7 @@ package com.jiho.board.springbootaws.web.dto.posts;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.domain.posts.Posts;
@@ -19,26 +20,34 @@ import lombok.NoArgsConstructor;
 public class PostsSaveRequestDto {
     private String title;
     private String content;
-    private Member author;
+    private Long categoryId;
     private List<TagDto> tagDto;
+
+    private Member author;
+    private Category category;
 
     public PostsSaveRequestDto addMember(Member author) {
         this.author = author;
         return this;
     }
 
+    public PostsSaveRequestDto addCategory(Category category) {
+        this.category = category;
+        return this;
+    }
+
     public Posts toEntity() {
-        Posts post = Posts.builder().title(title).content(content)
-                        .author(author).build();
-        post.updateTags(toPostTagEntity(post));
+        Posts post = Posts.builder().title(title).content(content).category(category)
+                .author(author).build();
+        post.setTags(toPostTagEntity(post));
         return post;
     }
 
     private List<PostTag> toPostTagEntity(Posts post) {
         return this.tagDto.stream()
-                        .map(t -> t.toEntity())
-                        .map(ten -> PostTag.builder()
-                                    .posts(post).tag(ten).build())
-                        .collect(Collectors.toList());
+                .map(t -> t.toEntity())
+                .map(ten -> PostTag.builder()
+                        .posts(post).tag(ten).build())
+                .collect(Collectors.toList());
     }
 }
