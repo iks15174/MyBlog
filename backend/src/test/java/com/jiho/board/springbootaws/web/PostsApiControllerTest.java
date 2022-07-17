@@ -1,6 +1,8 @@
 package com.jiho.board.springbootaws.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jiho.board.springbootaws.domain.category.Category;
+import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.Social;
@@ -26,6 +28,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -39,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -66,6 +70,9 @@ public class PostsApiControllerTest {
 
         @Autowired
         private TagRepository tagRepository;
+
+        @Autowired
+        private CategoryRepository categoryRepository;
 
         @Autowired
         private PasswordEncoder passwordEncoder;
@@ -108,7 +115,8 @@ public class PostsApiControllerTest {
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(post.get(0).getId()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(post.get(0).getTitle()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(0).getContent()))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.tags.[*].name", Matchers.containsInAnyOrder(tags.stream().map(t -> t.getName()).toArray())));
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.tags.[*].name", Matchers
+                                                .containsInAnyOrder(tags.stream().map(t -> t.getName()).toArray())));
         }
 
         @Test
@@ -147,39 +155,53 @@ public class PostsApiControllerTest {
         public void Posts_등록된다() throws Exception {
                 String title = "title";
                 String content = "content";
+                String parentCtNm = "parentCategory";
+                String childCtNm = "childCategory";
                 List<Tag> tags = createTags(1, 10);
+                Category category = createChildParentCategory(parentCtNm, childCtNm);
 
                 PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                                 .title(title)
                                 .content(content)
+                                .categoryId(category.getId())
                                 .tagDto(tags.stream().map(e -> new TagDto(e)).collect(Collectors.toList()))
                                 .build();
 
                 String url = "http://localhost:" + port + "/api/v1/posts";
 
-                mvc.perform(post(url)
+                MvcResult result = mvc.perform(post(url)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .content(new ObjectMapper().writeValueAsString(requestDto)))
-                                .andExpect(status().isOk());
+                                .andExpect(status().isOk())
+                                .andReturn();
 
-                List<Posts> all = postsRepository.findAll();
-                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(all.get(0).getId());
-                assertThat(all.get(0).getTitle()).isEqualTo(title);
-                assertThat(all.get(0).getContent()).isEqualTo(content);
+                Long postId = Long.parseLong(result.getResponse().getContentAsString());
+
+                Optional<Posts> createdPost = postsRepository.findByIdWithTags(postId);
+                assertThat(createdPost.isPresent()).isTrue();
+                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(createdPost.get().getId());
+                assertThat(createdPost.get().getTitle()).isEqualTo(title);
+                assertThat(createdPost.get().getContent()).isEqualTo(content);
                 assertThat(allPostTag.size()).isEqualTo(10);
                 allPostTag.forEach(pt -> {
                         assertThat(tags.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
                                         .findAny().orElse(null)).isNotEqualTo(null);
                 });
+                assertThat(createdPost.get().getCategory().getName()).isEqualTo(childCtNm);
         }
 
         @Test
         @WithMockCustomUser
         void Posts_수정된다() throws Exception {
+                String childCtNm = "childCategory";
+                String parentCtNm = "parentCategory";
                 List<Tag> oldTag = createTags(1, 2);
+                Category oldChildCt = createChildParentCategory(parentCtNm + "old", childCtNm + "old");
+                Category newChildCt = createChildParentCategory(parentCtNm + "new", childCtNm + "new");
 
-                Posts tempPost = Posts.builder().title("title").content("content").build();
+                Posts tempPost = Posts.builder().title("title").content("content").author(testMember).category(oldChildCt)
+                                .build();
                 List<PostTag> postTag = oldTag.stream()
                                 .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
                                 .collect(Collectors.toList());
@@ -195,6 +217,7 @@ public class PostsApiControllerTest {
                 PostsUpdateRequestDto requestDto = PostsUpdateRequestDto.builder()
                                 .title(updatedTitle)
                                 .content(updatedContent)
+                                .categoryId(newChildCt.getId())
                                 .tags(newTag.stream().map(nt -> new TagDto(nt)).collect(Collectors.toList()))
                                 .build();
 
@@ -206,14 +229,16 @@ public class PostsApiControllerTest {
                                 .content(new ObjectMapper().writeValueAsString(requestDto)))
                                 .andExpect(status().isOk());
 
-                List<Posts> all = postsRepository.findAll();
-                assertThat(all.get(0).getTitle()).isEqualTo(updatedTitle);
-                assertThat(all.get(0).getContent()).isEqualTo(updatedContent);
-                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(all.get(0).getId());
+                Optional<Posts> updatedPost = postsRepository.findByIdWithTags(savedPosts.getId());
+                assertThat(updatedPost.isPresent()).isEqualTo(true);
+                assertThat(updatedPost.get().getTitle()).isEqualTo(updatedTitle);
+                assertThat(updatedPost.get().getContent()).isEqualTo(updatedContent);
+                List<PostTag> allPostTag = postTagRepository.findAllByPostsId(updatedPost.get().getId());
                 allPostTag.forEach(pt -> {
                         assertThat(newTag.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
                                         .findAny().orElse(null)).isNotEqualTo(null);
                 });
+                assertThat(updatedPost.get().getCategory().getName()).isEqualTo(newChildCt.getName());
         }
 
         @Test
@@ -252,5 +277,14 @@ public class PostsApiControllerTest {
                 });
                 tagRepository.saveAll(tags);
                 return tags;
+        }
+
+        private Category createChildParentCategory(String parentNm, String childNm) {
+                Boolean parent = true;
+                Category parentCt = Category.builder().name(parentNm).isParent(parent).build();
+                categoryRepository.save(parentCt);
+                Category childCt = Category.builder().name(childNm).isParent(!parent).parentCategory(parentCt).build();
+                categoryRepository.save(childCt);
+                return childCt;
         }
 }
