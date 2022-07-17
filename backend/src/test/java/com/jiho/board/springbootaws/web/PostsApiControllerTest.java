@@ -155,10 +155,8 @@ public class PostsApiControllerTest {
         public void Posts_등록된다() throws Exception {
                 String title = "title";
                 String content = "content";
-                String parentCtNm = "parentCategory";
-                String childCtNm = "childCategory";
                 List<Tag> tags = createTags(1, 10);
-                Category category = createChildParentCategory(parentCtNm, childCtNm);
+                Category category = createChildParentCategory(1, 1).get(0);
 
                 PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                                 .title(title)
@@ -188,17 +186,16 @@ public class PostsApiControllerTest {
                         assertThat(tags.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
                                         .findAny().orElse(null)).isNotEqualTo(null);
                 });
-                assertThat(createdPost.get().getCategory().getName()).isEqualTo(childCtNm);
+                assertThat(createdPost.get().getCategory().getName()).isEqualTo(category.getName());
         }
 
         @Test
         @WithMockCustomUser
         void Posts_수정된다() throws Exception {
-                String childCtNm = "childCategory";
-                String parentCtNm = "parentCategory";
                 List<Tag> oldTag = createTags(1, 2);
-                Category oldChildCt = createChildParentCategory(parentCtNm + "old", childCtNm + "old");
-                Category newChildCt = createChildParentCategory(parentCtNm + "new", childCtNm + "new");
+                List<Category> categories = createChildParentCategory(1, 2);
+                Category oldChildCt = categories.get(0);
+                Category newChildCt = categories.get(1);
 
                 Posts tempPost = Posts.builder().title("title").content("content").author(testMember).category(oldChildCt)
                                 .build();
@@ -279,12 +276,19 @@ public class PostsApiControllerTest {
                 return tags;
         }
 
-        private Category createChildParentCategory(String parentNm, String childNm) {
+        private List<Category> createChildParentCategory(int start, int end) {
+                String parentNm = "parentCategory";
+                String childNm = "childCategory";
                 Boolean parent = true;
-                Category parentCt = Category.builder().name(parentNm).isParent(parent).build();
-                categoryRepository.save(parentCt);
-                Category childCt = Category.builder().name(childNm).isParent(!parent).parentCategory(parentCt).build();
-                categoryRepository.save(childCt);
-                return childCt;
+
+                List<Category> childCategories = new ArrayList<Category>();
+                IntStream.rangeClosed(start, end).forEach(i -> {
+                        Category parentCt = Category.builder().name(parentNm).isParent(parent).build();
+                        categoryRepository.save(parentCt);
+                        Category childCt = Category.builder().name(childNm).isParent(!parent).parentCategory(parentCt).build();
+                        categoryRepository.save(childCt);
+                        childCategories.add(childCt);
+                });
+                return childCategories;
         }
 }
