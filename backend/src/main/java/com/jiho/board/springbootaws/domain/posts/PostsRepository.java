@@ -17,9 +17,9 @@ public interface PostsRepository extends JpaRepository<Posts, Long>, SearchPostR
     List<Posts> findAllDesc();
 
     @Query("select distinct p" +
-    " from Posts p left outer join fetch PostTag pt on pt.posts = p " +
-    " left outer join fetch Tag t on pt.tag = t "+
-    " left outer join Member m on p.author = m "+
+    " from Posts p left outer join fetch p.tags t " +
+    " left outer join fetch t.tag "+
+    " left outer join fetch p.category "+
     " where p.id = :id")
     Optional<Posts> findByIdWithTags(@Param("id") Long id);
 
