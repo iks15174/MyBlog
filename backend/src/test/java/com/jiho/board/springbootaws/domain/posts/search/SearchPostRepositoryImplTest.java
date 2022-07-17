@@ -1,6 +1,8 @@
 package com.jiho.board.springbootaws.domain.posts.search;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -27,7 +29,6 @@ import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
-import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -96,9 +97,9 @@ public class SearchPostRepositoryImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
-        Page<PostsTagResultDto> postList = postsRepository.searchPost("", "", "", pageable);
-        for(PostsTagResultDto ptd: postList.getContent()){
-            assertThat(ptd.getTags().size()).isEqualTo(tagPerPost.get(ptd.getId()));
+        Page<List<Object>> postList = postsRepository.searchPost("", "", new ArrayList<Long>(), pageable);
+        for(List<Object> ptd: postList.getContent()){
+            assertThat(((List<Tag>)ptd.get(1)).size()).isEqualTo(tagPerPost.get(((Posts)ptd.get(0)).getId()));
         }
         assertThat(postList.getContent().size()).isEqualTo(10);
     }
