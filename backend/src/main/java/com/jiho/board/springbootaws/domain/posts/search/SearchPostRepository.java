@@ -1,10 +1,11 @@
 package com.jiho.board.springbootaws.domain.posts.search;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
-
 public interface SearchPostRepository {
-    PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category, Pageable pageable);
+    PageImpl<List<Object>> searchPost(String type, String keyword, ArrayList<Long> categoryIds, Pageable pageable);
 }

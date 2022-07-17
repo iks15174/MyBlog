@@ -1,8 +1,10 @@
 package com.jiho.board.springbootaws.domain.posts.search;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +16,6 @@ import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.QPosts;
 import com.jiho.board.springbootaws.domain.tag.QTag;
 import com.jiho.board.springbootaws.domain.tag.Tag;
-import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
@@ -30,33 +31,22 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
     }
 
     @Override
-    public PageImpl<PostsTagResultDto> searchPost(String type, String keyword, String category,
+    public PageImpl<List<Object>> searchPost(String type, String keyword, ArrayList<Long> categoryIds,
             Pageable pageable) {
         QPosts posts = QPosts.posts;
         QPostTag postTag = QPostTag.postTag;
         QTag tag = QTag.tag;
 
-        // 검색 결과에 해당하는 Post를 가져온다.
         JPQLQuery<Posts> jpqlQueryPost = from(posts);
         jpqlQueryPost.join(posts.author).fetchJoin();
-        BooleanBuilder booleanBuilder = new BooleanBuilder();
-        if (type != null) {
-            String[] typeArr = type.split("");
-            BooleanBuilder conditionBuilder = new BooleanBuilder();
-            for (String t : typeArr) {
-                switch (t) {
-                    case "t":
-                        conditionBuilder.or(posts.title.contains(keyword));
-                        break;
-                    case "c":
-                        conditionBuilder.or(posts.content.contains(keyword));
-                        break;
-                }
-            }
-            booleanBuilder.and(conditionBuilder);
-        }
+
+        BooleanBuilder totalBuilder = new BooleanBuilder();
+        BooleanBuilder keywBuilder = makeKeywordBuilder(type, keyword, posts);
+        BooleanBuilder categoryBuilder = makeCategoryBuilder(categoryIds, posts);
+        totalBuilder.and(keywBuilder).and(categoryBuilder);
+
         JPQLQuery<Posts> postResult = jpqlQueryPost.select(posts);
-        postResult.where(booleanBuilder);
+        postResult.where(totalBuilder);
         Sort sort = pageable.getSort();
         sort.stream().forEach(order -> {
             Order direction = order.isAscending() ? Order.ASC : Order.DESC;
@@ -80,38 +70,58 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
         JPQLQuery<Tuple> postTagResult = jpqlQueryPostTag.select(posts, tag);
         postTagResult.where(inPostList);
         Map<Posts, List<Tag>> postTagMap = postTagResult.transform(GroupBy.groupBy(posts).as(GroupBy.list(tag)));
+        List<List<Object>> postTagList = postTagMap.entrySet().stream().map(e -> Arrays.asList(e.getKey(), e.getValue())).collect(Collectors.toList());
 
-        // 결과 확인
-        // postList.forEach(p -> {
-        // System.out.println(p);
-        // });
-        // postTagMap.entrySet().stream().forEach(e -> {
-        // System.out.println(e.getKey());
-        // for(Tag t:e.getValue()){
-        // System.out.println(t);
-        // }
-        // });
-
-        List<PostsTagResultDto> postsTagResultDtos = new ArrayList<>();
-        for (Posts p : postList) {
-            Boolean isFound = false;
-            for (Posts key : postTagMap.keySet()) {
-                if (key.getId() == p.getId()) {
-                    postsTagResultDtos.add(new PostsTagResultDto(p, postTagMap.get(key)));
-                    isFound = true;
-                    break;
-                }
-            }
-            if (!isFound) {
-                postsTagResultDtos.add(new PostsTagResultDto(p, new ArrayList<Tag>()));
-            }
-        }
+        // printState(postList, postTagMap);
 
         long count = postResult.fetchCount();
-        return new PageImpl<PostsTagResultDto>(
-                postsTagResultDtos,
+        return new PageImpl<List<Object>>(
+                postTagList,
                 pageable,
                 count);
+    }
+
+    private BooleanBuilder makeKeywordBuilder(String type, String keyword, QPosts posts) {
+        BooleanBuilder conditionBuilder = new BooleanBuilder();
+        if (type != null) {
+            String[] typeArr = type.split("");
+            for (String t : typeArr) {
+                switch (t) {
+                    case "t":
+                        conditionBuilder.or(posts.title.contains(keyword));
+                        break;
+                    case "c":
+                        conditionBuilder.or(posts.content.contains(keyword));
+                        break;
+                }
+            }
+        }
+        return conditionBuilder;
+    }
+
+    private BooleanBuilder makeCategoryBuilder(ArrayList<Long> categoryIds, QPosts posts) {
+        BooleanBuilder categoryBuilder = new BooleanBuilder();
+        for (int i = 0; i < categoryIds.size(); i++) {
+            categoryBuilder.or(posts.category.id.eq(categoryIds.get(i)));
+        }
+        return categoryBuilder;
+    }
+
+    private void printState(List<Posts> postList, Map<Posts, List<Tag>> postTagMap) {
+        postList.forEach(p -> {
+            System.out.println(p);
+        });
+        postTagMap.entrySet().stream().forEach(e -> {
+            System.out.println(e.getKey());
+            for (Tag t : e.getValue()) {
+                System.out.println(t);
+            }
+        });
+    }
+
+    private BooleanBuilder tagBuilder(ArrayList<Long> tagId, QPosts posts) {
+        BooleanBuilder tagBuilder = new BooleanBuilder();
+        return tagBuilder;
     }
 
 }
