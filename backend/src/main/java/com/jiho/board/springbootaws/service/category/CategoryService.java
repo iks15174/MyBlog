@@ -43,4 +43,10 @@ public class CategoryService {
             return responseDto;
         }).collect(Collectors.toList());
     }
+
+    @Transactional
+    public List<CategoryResponseDto> getSubCategoryList() {
+        List<Category> entities = categoryRepository.findAllSubCategory();
+        return entities.stream().map(entity -> new CategoryResponseDto(entity)).collect(Collectors.toList());
+    }
 }

@@ -9,7 +9,7 @@ public class CategoryResponseDto {
     private Long id;
     private String name;
     private Boolean isParent;
-    private Long postCnt;
+    private Long postCnt = (long) 0;
 
     public CategoryResponseDto(Category entity){
         this.id = entity.getId();

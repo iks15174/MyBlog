@@ -16,4 +16,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Object[]> findAllWithPostCnt();
 
     Optional<Category> findByIsParent(boolean b);
+
+    @Query("SELECT c " + 
+    "FROM Category c " + 
+    "WHERE c.isParent = FALSE")
+    List<Category> findAllSubCategory();
 }

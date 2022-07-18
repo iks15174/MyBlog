@@ -30,4 +30,9 @@ public class CategoryApiController {
     public List<CategoryResponseDto> getList(){
         return categoryService.getList();
     }
+
+    @GetMapping("/api/v1/subCategory")
+    public List<CategoryResponseDto> getSubCategoryList(){
+        return categoryService.getSubCategoryList();
+    }
 }
