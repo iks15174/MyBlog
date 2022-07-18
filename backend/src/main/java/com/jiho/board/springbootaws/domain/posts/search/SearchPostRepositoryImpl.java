@@ -38,8 +38,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
         QTag tag = QTag.tag;
 
         JPQLQuery<Posts> jpqlQueryPost = from(posts);
-        jpqlQueryPost.join(posts.author).fetchJoin();
-        jpqlQueryPost.join(posts.category).fetchJoin();
+        jpqlQueryPost.leftJoin(posts.category).fetchJoin();
 
         BooleanBuilder totalBuilder = new BooleanBuilder();
         BooleanBuilder keywBuilder = makeKeywordBuilder(type, keyword, posts);
@@ -62,9 +61,12 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
 
         // 검색결과 Post의 tag들을 가져온다.
         JPQLQuery<Posts> jpqlQueryPostTag = from(posts);
+        jpqlQueryPostTag.join(posts.author).fetchJoin();
+        jpqlQueryPostTag.leftJoin(posts.category).fetchJoin();
         jpqlQueryPostTag.leftJoin(postTag).on(postTag.posts.eq(posts));
         jpqlQueryPostTag.leftJoin(tag).on(postTag.tag.eq(tag));
         BooleanBuilder inPostList = new BooleanBuilder();
+        inPostList.or(posts.id.eq((long) -1));
         for (Posts p : postList) {
             inPostList.or(posts.id.eq(p.getId()));
         }
@@ -113,7 +115,8 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
             System.out.println(p);
         });
         postTagMap.entrySet().stream().forEach(e -> {
-            System.out.println(e.getKey());
+            System.out.println(e.getKey().getTitle());
+            System.out.println(e.getKey().getCategory().getName());
             for (Tag t : e.getValue()) {
                 System.out.println(t);
             }

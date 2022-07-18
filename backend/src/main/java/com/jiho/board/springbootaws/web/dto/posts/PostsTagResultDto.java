@@ -14,6 +14,7 @@ public class PostsTagResultDto {
     private String title;
     private String content;
     private String author;
+    private String category;
     private List<String> tags = new ArrayList<String>();
 
     public PostsTagResultDto(Posts entity, List<Tag> tagsEntity) {
@@ -21,6 +22,7 @@ public class PostsTagResultDto {
         this.title = entity.getTitle();
         this.content = entity.getContent();
         this.author = entity.getAuthor().getName();
+        this.category = entity.getCategory().getName();
         for(Tag t:tagsEntity){
             this.tags.add(t.getName());
         }
