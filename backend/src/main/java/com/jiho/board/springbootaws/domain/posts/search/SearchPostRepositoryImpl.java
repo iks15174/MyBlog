@@ -39,6 +39,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
 
         JPQLQuery<Posts> jpqlQueryPost = from(posts);
         jpqlQueryPost.join(posts.author).fetchJoin();
+        jpqlQueryPost.join(posts.category).fetchJoin();
 
         BooleanBuilder totalBuilder = new BooleanBuilder();
         BooleanBuilder keywBuilder = makeKeywordBuilder(type, keyword, posts);

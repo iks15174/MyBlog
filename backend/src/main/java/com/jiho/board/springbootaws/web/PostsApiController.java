@@ -39,7 +39,7 @@ public class PostsApiController {
     public PageResultDto<PostsTagResultDto, List<Object>> getList(
             @RequestParam(value = "type", required = false, defaultValue = "") String type,
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "category", required = false, defaultValue = "") ArrayList<Long> categoryIds,
+            @RequestParam(value = "category", required = false, defaultValue = "[]") ArrayList<Long> categoryIds,
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         return postsService.getList(type, keyword, categoryIds, pageable);
     }
