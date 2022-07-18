@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -181,8 +182,13 @@ public class CategoryApiControllerTest {
         @Test
         public void 자식_Category만_가져온다() throws Exception {
                 List<Category> categories = createCategories(5);
+                List<Category> subCategory = categories.stream().filter(c -> !c.getIsParent()).collect(Collectors.toList());
                 String url = "http://localhost:" + port + "/api/v1/subCategory";
                 ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
+                for(int i = 0; i < subCategory.size(); i++) {
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].isParent").value(false));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(subCategory.get(i).getName()));
+                }
 
         }
 
