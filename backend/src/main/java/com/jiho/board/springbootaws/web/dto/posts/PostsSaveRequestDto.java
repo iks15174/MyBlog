@@ -3,8 +3,6 @@ package com.jiho.board.springbootaws.web.dto.posts;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.jiho.board.springbootaws.domain.category.Category;
-import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 
