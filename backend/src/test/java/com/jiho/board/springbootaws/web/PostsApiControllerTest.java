@@ -29,6 +29,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -151,6 +152,25 @@ public class PostsApiControllerTest {
         }
 
         @Test
+        public void PostList_TAG_CATEGORY와_함꼐_검색한다() throws Exception {
+                List<Posts> posts = createPostsWithTagCategory(20);
+                List<Posts> filteredPost = posts.stream()
+                                .filter(p -> p.getTitle().contains("2") || p.getContent().contains("2"))
+                                .filter(p -> p.getCategory().getId() == 4 || p.getCategory().getId() == 24)
+                                .collect(Collectors.toList());
+                String url = "http://localhost:" + port + "/api/v1/posts"
+                                + "?type=tc&keyword=2&category=4&category=24";
+                ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
+                for(int i = 0; i < filteredPost.size(); i++){
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].title").value(filteredPost.get(i).getTitle()));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].content").value(filteredPost.get(i).getContent()));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].category").value(filteredPost.get(i).getCategory().getName()));
+
+                }
+
+        }
+
+        @Test
         @WithMockCustomUser
         public void Posts_등록된다() throws Exception {
                 String title = "title";
@@ -197,7 +217,8 @@ public class PostsApiControllerTest {
                 Category oldChildCt = categories.get(0);
                 Category newChildCt = categories.get(1);
 
-                Posts tempPost = Posts.builder().title("title").content("content").author(testMember).category(oldChildCt)
+                Posts tempPost = Posts.builder().title("title").content("content").author(testMember)
+                                .category(oldChildCt)
                                 .build();
                 List<PostTag> postTag = oldTag.stream()
                                 .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
@@ -251,14 +272,34 @@ public class PostsApiControllerTest {
 
         }
 
+        // i번 posts는 1 ~ i번까지의 태그와 i번 카테고리를 가진다.
+        private List<Posts> createPostsWithTagCategory(int postsNum) {
+                List<Posts> posts = createPosts(postsNum);
+                List<Tag> tags = createTags(1, postsNum);
+                List<Category> categories = createChildParentCategory(1, postsNum);
+                for (int i = 0; i < posts.size(); i++) {
+                        List<Tag> subTag = tags.subList(0, i + 1);
+                        Posts curPost = posts.get(i);
+                        List<PostTag> postTags = new ArrayList<PostTag>();
+                        subTag.forEach(st -> {
+                                PostTag postTag = PostTag.builder().posts(curPost).tag(st).build();
+                                postTags.add(postTag);
+                        });
+                        curPost.setTags(postTags);
+                        curPost.setCategory(categories.get(i));
+                        postsRepository.save(curPost);
+                }
+                return posts;
+        }
+
         private List<Posts> createPosts(int postsNum) {
                 String baseTitle = "title";
                 String baseContent = "content";
                 List<Posts> result = new ArrayList<>();
                 for (int i = 0; i < postsNum; i++) {
                         result.add(Posts.builder()
-                                        .title(baseTitle + Integer.toString(i))
-                                        .content(baseContent + Integer.toString(i))
+                                        .title(baseTitle + Integer.toString(i + 1))
+                                        .content(baseContent + Integer.toString(i + 1))
                                         .author(testMember)
                                         .build());
                 }
@@ -283,9 +324,11 @@ public class PostsApiControllerTest {
 
                 List<Category> childCategories = new ArrayList<Category>();
                 IntStream.rangeClosed(start, end).forEach(i -> {
-                        Category parentCt = Category.builder().name(parentNm).isParent(parent).build();
+                        Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
                         categoryRepository.save(parentCt);
-                        Category childCt = Category.builder().name(childNm).isParent(!parent).parentCategory(parentCt).build();
+                        Category childCt = Category.builder().name(childNm + i).isParent(!parent)
+                                        .parentCategory(parentCt)
+                                        .build();
                         categoryRepository.save(childCt);
                         childCategories.add(childCt);
                 });
