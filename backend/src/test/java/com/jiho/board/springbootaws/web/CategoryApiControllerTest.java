@@ -153,35 +153,52 @@ public class CategoryApiControllerTest {
                 assertThat(childCt.isPresent()).isTrue();
                 assertThat(childCt.get().getName()).isEqualTo(subCategoryNm);
                 assertThat(childCt.get().getParentCategory().getId()).isEqualTo(parentCt.getId());
-                
-
         }
 
         @Test
         public void Category를_PostCnt와_함께_가져온다() throws Exception {
                 List<Category> categories = createCategories(5);
                 for (int i = 0; i < categories.size(); i++) {
-                        createPosts(i + 1, categories.get(i));
+                        if (!categories.get(i).getIsParent()) {
+                                createPosts(i + 1, categories.get(i));
+                        }
                 }
                 String url = "http://localhost:" + port + "/api/v1/category";
                 ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
                 for (int i = 0; i < categories.size(); i++) {
+                        int postCnt = 0;
+                        if(!categories.get(i).getIsParent()){
+                                postCnt = i + 1;
+                        }
                         actions = actions.andExpect(
                                         MockMvcResultMatchers.jsonPath("$.[" + i + "].name")
                                                         .value(categories.get(i).getName()));
                         actions = actions.andExpect(
-                                        MockMvcResultMatchers.jsonPath("$.[" + i + "].postCnt").value(i + 1));
+                                        MockMvcResultMatchers.jsonPath("$.[" + i + "].postCnt").value(postCnt));
                 }
+        }
+
+        @Test
+        public void 자식_Category만_가져온다() throws Exception {
+                List<Category> categories = createCategories(5);
+                String url = "http://localhost:" + port + "/api/v1/subCategory";
+                ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
+
         }
 
         private List<Category> createCategories(int categoryNum) {
                 String baseName = "category";
-                Boolean isParent = false;
+                Boolean parent = true;
                 List<Category> result = new ArrayList<>();
                 IntStream.rangeClosed(1, categoryNum).forEach(i -> {
-                        result.add(Category.builder().name(baseName + i).isParent(isParent).build());
+                        Category parentCt = Category.builder().name(baseName + i + "parent").isParent(parent).build();
+                        categoryRepository.save(parentCt);
+                        result.add(parentCt);
+                        Category childCt = Category.builder().name(baseName + i).isParent(!parent)
+                                        .parentCategory(parentCt).build();
+                        categoryRepository.save(childCt);
+                        result.add(childCt);
                 });
-                categoryRepository.saveAll(result);
                 return result;
         }
 
