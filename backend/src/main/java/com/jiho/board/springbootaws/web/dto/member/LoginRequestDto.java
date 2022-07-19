@@ -2,10 +2,14 @@ package com.jiho.board.springbootaws.web.dto.member;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class LoginRequestDto {
     private String email;
