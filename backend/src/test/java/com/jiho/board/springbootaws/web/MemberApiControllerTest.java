@@ -83,10 +83,35 @@ public class MemberApiControllerTest {
         assertThat(allMember.get(0).getEmail()).isEqualTo(email);
         assertThat(passwordEncoder.matches(
                 password, allMember.get(0).getPassword()))
-                        .isTrue();
+                .isTrue();
         assertThat(allMember.get(0).getName()).isEqualTo(name);
         assertThat(allMember.get(0).getSocial()).isEqualTo(social);
 
+    }
+
+    @Test
+    public void 동일한_이메일로_회원가입_할_수_없다() throws Exception {
+        String email = "jiho@test.com";
+        String password = "1111";
+        String name = "ParkJiHo";
+        Social social = Social.NoSocial;
+        memberRepository.save(Member.builder().email(email).name(name).social(social)
+                .password(passwordEncoder.encode(password)).build());
+
+        MemberSaveRequestDto requestDto = MemberSaveRequestDto.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .social(social)
+                .build();
+
+        String url = urlPrefix + "/api/v1/auth/signup";
+
+        mvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isBadRequest());
     }
 
 }
