@@ -8,6 +8,7 @@ import javax.transaction.Transactional;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.MemberRole;
+import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.service.member.dto.OAuth2Attribute;
 
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +50,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     }
 
     private Member saveSocialMember(OAuth2Attribute oAuth2Attribute) {
-        Optional<Member> result = memberRepository
-                .findByEmailAndSocial(oAuth2Attribute.getEmail(), oAuth2Attribute.getSocial());
+        Optional<Member> result = memberRepository.findByEmail(oAuth2Attribute.getEmail());
 
         if (result.isPresent()) {
+            if (result.get().getSocial() != oAuth2Attribute.getSocial()) {
+                OAuth2Error oAuth2Error = new OAuth2Error(ErrorCode.EMAIL_DUPLICATED_ERROR.getMessage());
+                throw new OAuth2AuthenticationException(oAuth2Error, oAuth2Error.toString());
+            }
             return result.get();
         }
 
