@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.Social;
+import com.jiho.board.springbootaws.web.dto.member.LoginRequestDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 
 import org.junit.jupiter.api.AfterEach;
@@ -15,6 +16,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -114,4 +116,25 @@ public class MemberApiControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    public void 로그인할_수_있다() throws Exception {
+        String email = "jiho@test.com";
+        String password = "1111";
+        String name = "ParkJiHo";
+        Social social = Social.NoSocial;
+        memberRepository.save(Member.builder().email(email).name(name).social(social)
+                .password(passwordEncoder.encode(password)).build());
+
+        LoginRequestDto requestDto = LoginRequestDto.builder().email(email).password(password).build();
+
+        String url = urlPrefix + "/api/v1/auth/login";
+
+        mvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.accessToken").isString());
+        
+    }
 }
