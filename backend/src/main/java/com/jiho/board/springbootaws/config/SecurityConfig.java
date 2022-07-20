@@ -2,6 +2,7 @@ package com.jiho.board.springbootaws.config;
 
 import com.jiho.board.springbootaws.config.filter.JwtFilter;
 import com.jiho.board.springbootaws.config.handler.CustomAuthenticationEntryPoint;
+import com.jiho.board.springbootaws.config.handler.OAuth2FailureHandler;
 import com.jiho.board.springbootaws.config.handler.OAuth2SuccessHandler;
 import com.jiho.board.springbootaws.util.JWTUtil;
 
@@ -25,6 +26,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JWTUtil jwtUtil;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Override
@@ -42,6 +44,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .oauth2Login()
                 .successHandler(oAuth2SuccessHandler)
+                .failureHandler(oAuth2FailureHandler)
                 .and()
                 .exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
 
