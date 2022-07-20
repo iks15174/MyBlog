@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jiho.board.springbootaws.util.JWTUtil;
+import com.jiho.board.springbootaws.web.dto.util.JwtValidateResultDto;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = resolveToken(request);
         if (StringUtils.hasText(jwt)) {
             // 예외처리 추가할 것 io.jsonwebtoken.ExpiredJwtException
-            Authentication authentication = jwtUtil.validateAndExtract(jwt);
+            JwtValidateResultDto resultDto = jwtUtil.validate(jwt);
+            Authentication authentication = jwtUtil.extract(resultDto.getClaims());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

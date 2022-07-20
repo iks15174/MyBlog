@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import com.jiho.board.springbootaws.domain.member.Social;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.web.dto.member.TokenDto;
+import com.jiho.board.springbootaws.web.dto.util.JwtValidateResultDto;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClaims;
@@ -28,7 +30,7 @@ public class JWTUtil {
     private static final String NAME_KEY = "name";
     private static final String SOCIAL_KEY = "social";
     private String secretKey = "randomSecretNeedChange";
-    private long expire = 60 * 24 * 7; // 일주일
+    private long accessExpire = 60; // 1 hour
 
     public TokenDto generateToken(AuthMemberDto authMemberDto) throws Exception {
         String authorities = authMemberDto.getAuthorities().stream()
@@ -37,7 +39,7 @@ public class JWTUtil {
 
         String accessToken = Jwts.builder()
                 .setIssuedAt(new Date())
-                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(expire).toInstant()))
+                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(accessExpire).toInstant()))
                 .setSubject(authMemberDto.getUsername())
                 .claim(AUTHORITIES_KEY, authorities)
                 .claim(NAME_KEY, authMemberDto.getName())
@@ -47,35 +49,44 @@ public class JWTUtil {
         return TokenDto.builder().accessToken(accessToken).build();
     }
 
-    public Authentication validateAndExtract(String tokenStr) {
-        Authentication authentication = null;
-
+    public JwtValidateResultDto validate(String tokenStr) {
+        DefaultClaims claims = null;
         try {
             DefaultJws defaultJws = (DefaultJws) Jwts.parser()
                     .setSigningKey(secretKey.getBytes("UTF-8"))
                     .parseClaimsJws(tokenStr);
-            DefaultClaims claims = (DefaultClaims) defaultJws.getBody();
-
+            claims = (DefaultClaims) defaultJws.getBody();
             if (claims.get(AUTHORITIES_KEY) == null) {
-                throw new RuntimeException("권한 정보가 없는 토근입니다.");
+                return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
             }
-
-            Collection<? extends GrantedAuthority> authorities = Arrays.stream(
-                    claims.get(AUTHORITIES_KEY).toString().split(",")).map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-            UserDetails principal = new AuthMemberDto(
-                    claims.getSubject(),
-                    "",
-                    (String) claims.get(NAME_KEY),
-                    (Social) Social.valueOf((String) claims.get(SOCIAL_KEY)),
-                    authorities);
-            authentication = new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        } catch (ExpiredJwtException e) {
+            return JwtValidateResultDto.builder().resultCode(JwtCode.EXPIRED).claims(null).build();
         } catch (Exception e) {
-            e.printStackTrace();
-            authentication = null;
+            return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
         }
+        return JwtValidateResultDto.builder().resultCode(JwtCode.ACCESS).claims(claims).build();
 
+    }
+
+    public Authentication extract(DefaultClaims claims) {
+        Authentication authentication = null;
+
+        Collection<? extends GrantedAuthority> authorities = Arrays.stream(
+                claims.get(AUTHORITIES_KEY).toString().split(",")).map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+        UserDetails principal = new AuthMemberDto(
+                claims.getSubject(),
+                "",
+                (String) claims.get(NAME_KEY),
+                (Social) Social.valueOf((String) claims.get(SOCIAL_KEY)),
+                authorities);
+        authentication = new UsernamePasswordAuthenticationToken(principal, "", authorities);
         return authentication;
     }
 
+    public static enum JwtCode {
+        DENIED,
+        ACCESS,
+        EXPIRED;
+    }
 }
