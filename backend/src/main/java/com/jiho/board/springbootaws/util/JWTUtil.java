@@ -31,6 +31,7 @@ public class JWTUtil {
     private static final String SOCIAL_KEY = "social";
     private String secretKey = "randomSecretNeedChange";
     private long accessExpire = 60; // 1 hour
+    private long refreshExpire = 60 * 24 * 3; // 3days
 
     public TokenDto generateToken(AuthMemberDto authMemberDto) throws Exception {
         String authorities = authMemberDto.getAuthorities().stream()
@@ -46,7 +47,18 @@ public class JWTUtil {
                 .claim(SOCIAL_KEY, authMemberDto.getSocial())
                 .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
                 .compact();
-        return TokenDto.builder().accessToken(accessToken).build();
+
+        String refreshToken = Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(refreshExpire).toInstant()))
+                .setSubject(authMemberDto.getUsername())
+                .claim(AUTHORITIES_KEY, authorities)
+                .claim(NAME_KEY, authMemberDto.getName())
+                .claim(SOCIAL_KEY, authMemberDto.getSocial())
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
+                .compact();
+                
+        return TokenDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     }
 
     public JwtValidateResultDto validate(String tokenStr) {
