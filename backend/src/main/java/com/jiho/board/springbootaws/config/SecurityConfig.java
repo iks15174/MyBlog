@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final JWTUtil jwtUtil;
+    private final JwtFilter jwtFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
@@ -51,7 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
@@ -59,8 +59,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    JwtFilter jwtFilter() {
-        return new JwtFilter(jwtUtil);
-    }
+    // @Bean
+    // JwtFilter jwtFilter() {
+    //     return new JwtFilter(jwtUtil);
+    // }
 }

@@ -11,6 +11,9 @@ public enum ErrorCode {
     // Member
     EMAIL_DUPLICATED_ERROR(400, "B001", " Duplicated user email"),
     UNEIXIST_USER(401, "B002", "Can't find user by Email and Social"),
+    FORBIDDEN_USER(403, "B003", "Invalid user"),
+    EXPIRED_USER(403, "B004", "Token expired"),
+
 
     // Post
     UNEIXIST_POST(404, "C001", "Can't find post by id"),
