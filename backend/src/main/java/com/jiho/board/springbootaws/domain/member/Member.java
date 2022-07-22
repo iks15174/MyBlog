@@ -52,4 +52,12 @@ public class Member extends BaseTimeEntity {
     public void addMemberRole(MemberRole memberRole) {
         this.roleSet.add(memberRole);
     }
+
+    public void clearRefreshToken() {
+        this.refreshToken = "";
+    }
+
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 }
