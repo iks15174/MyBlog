@@ -33,10 +33,14 @@ public class MemberApiController {
 
     }
 
+    @PostMapping("/api/v1/auth/reissue")
+    public TokenDto postMethodName(@RequestBody TokenDto requestDto) {
+        return null;
+    }
+
     @GetMapping("/api/v1/auth/test")
     public void test() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(((AuthMemberDto) authentication.getPrincipal()).getUsername());
     }
-
 }

@@ -1,5 +1,7 @@
 package com.jiho.board.springbootaws.service.member;
 
+import java.util.Optional;
+
 import javax.transaction.Transactional;
 
 import com.jiho.board.springbootaws.domain.member.Member;
@@ -12,6 +14,7 @@ import com.jiho.board.springbootaws.web.dto.member.LoginRequestDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberResponseDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.member.TokenDto;
+import com.jiho.board.springbootaws.web.dto.util.JwtValidateResultDto;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -46,5 +49,33 @@ public class MemberService {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         AuthMemberDto authMemberDto = (AuthMemberDto) authentication.getPrincipal();
         return jwtUtil.generateToken(authMemberDto);
+    }
+
+    @Transactional
+    public TokenDto reissue(TokenDto requestDto) throws Exception {
+        JwtValidateResultDto jwtValidateResultDto = jwtUtil.validate(requestDto.getRefreshToken());
+        if (jwtValidateResultDto.getResultCode() == JWTUtil.JwtCode.DENIED) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        } else if (jwtValidateResultDto.getResultCode() == JWTUtil.JwtCode.EXPIRED) {
+            Authentication authentication = jwtUtil.extract(jwtValidateResultDto.getClaims());
+            AuthMemberDto authMemberDto = (AuthMemberDto) authentication.getPrincipal();
+            Member member = memberRepository.findByEmail(authMemberDto.getUsername())
+                    .orElseThrow(() -> new CustomBasicException(ErrorCode.FORBIDDEN_USER));
+            member.clearRefreshToken();
+            throw new CustomBasicException(ErrorCode.FORBIDDEN_USER);
+        } else {
+            Authentication authentication = jwtUtil.extract(jwtValidateResultDto.getClaims());
+            AuthMemberDto authMemberDto = (AuthMemberDto) authentication.getPrincipal();
+            Member member = memberRepository.findByEmail(authMemberDto.getUsername())
+                    .orElseThrow(() -> new CustomBasicException(ErrorCode.FORBIDDEN_USER));
+            if (!member.getRefreshToken().equals(requestDto.getRefreshToken())
+                    || requestDto.getRefreshToken().isEmpty()) {
+                member.clearRefreshToken();
+                throw new CustomBasicException(ErrorCode.FORBIDDEN_USER);
+            }
+            TokenDto generatedToken = jwtUtil.generateToken(authMemberDto);
+            member.updateRefreshToken(generatedToken.getRefreshToken());
+            return generatedToken;
+        }
     }
 }
