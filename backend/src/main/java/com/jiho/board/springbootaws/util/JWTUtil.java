@@ -72,7 +72,7 @@ public class JWTUtil {
                 return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
             }
         } catch (ExpiredJwtException e) {
-            return JwtValidateResultDto.builder().resultCode(JwtCode.EXPIRED).claims(null).build();
+            return JwtValidateResultDto.builder().resultCode(JwtCode.EXPIRED).claims((DefaultClaims) e.getClaims()).build();
         } catch (Exception e) {
             return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
         }
