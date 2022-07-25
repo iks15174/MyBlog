@@ -7,6 +7,7 @@ public enum ErrorCode {
     INTERNAL_SERVER_ERROR(500, "A002", "Server Error"),
     INVALID_TYPE_VALUE(400, "A003", " Invalid Type Value"),
     HANDLE_ACCESS_DENIED(403, "A004", "Access is Denied"),
+    UNSUPPORTED_ENCODING(500, "A005", "Unspported encoding type"),
 
     // Member
     EMAIL_DUPLICATED_ERROR(400, "B001", " Duplicated user email"),
