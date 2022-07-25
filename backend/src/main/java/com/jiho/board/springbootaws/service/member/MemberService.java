@@ -1,7 +1,5 @@
 package com.jiho.board.springbootaws.service.member;
 
-import java.util.Optional;
-
 import javax.transaction.Transactional;
 
 import com.jiho.board.springbootaws.domain.member.Member;
@@ -48,11 +46,15 @@ public class MemberService {
         UsernamePasswordAuthenticationToken authenticationToken = requestDto.toAuthentication();
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         AuthMemberDto authMemberDto = (AuthMemberDto) authentication.getPrincipal();
-        return jwtUtil.generateToken(authMemberDto);
+        TokenDto newToken = jwtUtil.generateToken(authMemberDto);
+        Member member = memberRepository.findByEmail(authMemberDto.getUsername())
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
+        member.updateRefreshToken(newToken.getRefreshToken());
+        return newToken;
     }
 
     @Transactional
-    public TokenDto reissue(TokenDto requestDto) throws Exception {
+    public TokenDto reissue(TokenDto requestDto) {
         JwtValidateResultDto jwtValidateResultDto = jwtUtil.validate(requestDto.getRefreshToken());
         if (jwtValidateResultDto.getResultCode() == JWTUtil.JwtCode.DENIED) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);

@@ -35,7 +35,7 @@ public class MemberApiController {
 
     @PostMapping("/api/v1/auth/reissue")
     public TokenDto postMethodName(@RequestBody TokenDto requestDto) {
-        return null;
+        return memberService.reissue(requestDto);
     }
 
     @GetMapping("/api/v1/auth/test")
