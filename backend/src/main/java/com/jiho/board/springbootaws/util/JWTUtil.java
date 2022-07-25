@@ -1,5 +1,6 @@
 package com.jiho.board.springbootaws.util;
 
+import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
@@ -7,6 +8,8 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 import com.jiho.board.springbootaws.domain.member.Social;
+import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
+import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.web.dto.member.TokenDto;
 import com.jiho.board.springbootaws.web.dto.util.JwtValidateResultDto;
@@ -33,32 +36,35 @@ public class JWTUtil {
     private long accessExpire = 60; // 1 hour
     private long refreshExpire = 60 * 24 * 3; // 3days
 
-    public TokenDto generateToken(AuthMemberDto authMemberDto) throws Exception {
-        String authorities = authMemberDto.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public TokenDto generateToken(AuthMemberDto authMemberDto) {
+        try {
+            String authorities = authMemberDto.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(","));
 
-        String accessToken = Jwts.builder()
-                .setIssuedAt(new Date())
-                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(accessExpire).toInstant()))
-                .setSubject(authMemberDto.getUsername())
-                .claim(AUTHORITIES_KEY, authorities)
-                .claim(NAME_KEY, authMemberDto.getName())
-                .claim(SOCIAL_KEY, authMemberDto.getSocial())
-                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
-                .compact();
-
-        String refreshToken = Jwts.builder()
-                .setIssuedAt(new Date())
-                .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(refreshExpire).toInstant()))
-                .setSubject(authMemberDto.getUsername())
-                .claim(AUTHORITIES_KEY, authorities)
-                .claim(NAME_KEY, authMemberDto.getName())
-                .claim(SOCIAL_KEY, authMemberDto.getSocial())
-                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
-                .compact();
-                
-        return TokenDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+            String accessToken;
+            accessToken = Jwts.builder()
+                    .setIssuedAt(new Date())
+                    .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(accessExpire).toInstant()))
+                    .setSubject(authMemberDto.getUsername())
+                    .claim(AUTHORITIES_KEY, authorities)
+                    .claim(NAME_KEY, authMemberDto.getName())
+                    .claim(SOCIAL_KEY, authMemberDto.getSocial())
+                    .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
+                    .compact();
+            String refreshToken = Jwts.builder()
+                    .setIssuedAt(new Date())
+                    .setExpiration(Date.from(ZonedDateTime.now().plusMinutes(refreshExpire).toInstant()))
+                    .setSubject(authMemberDto.getUsername())
+                    .claim(AUTHORITIES_KEY, authorities)
+                    .claim(NAME_KEY, authMemberDto.getName())
+                    .claim(SOCIAL_KEY, authMemberDto.getSocial())
+                    .signWith(SignatureAlgorithm.HS256, secretKey.getBytes("UTF-8"))
+                    .compact();
+            return TokenDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+        } catch (UnsupportedEncodingException e) {
+            throw new CustomBasicException(ErrorCode.UNSUPPORTED_ENCODING);
+        }
     }
 
     public JwtValidateResultDto validate(String tokenStr) {
@@ -72,7 +78,8 @@ public class JWTUtil {
                 return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
             }
         } catch (ExpiredJwtException e) {
-            return JwtValidateResultDto.builder().resultCode(JwtCode.EXPIRED).claims((DefaultClaims) e.getClaims()).build();
+            return JwtValidateResultDto.builder().resultCode(JwtCode.EXPIRED).claims((DefaultClaims) e.getClaims())
+                    .build();
         } catch (Exception e) {
             return JwtValidateResultDto.builder().resultCode(JwtCode.DENIED).claims(null).build();
         }
