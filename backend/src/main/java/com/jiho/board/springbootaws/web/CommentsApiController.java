@@ -9,6 +9,8 @@ import com.jiho.board.springbootaws.web.dto.comments.CommentsUpdateRequestDto;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,27 +31,27 @@ public class CommentsApiController {
 
     @Secured(MemberRole.ROLES.USER)
     @PostMapping("/api/v1/comments")
-    public Long save(@RequestBody CommentsSaveRequestDto requestDto) {
-        return commentsService.save(requestDto);
+    public ResponseEntity<Long> save(@RequestBody CommentsSaveRequestDto requestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentsService.save(requestDto));
     }
 
     @GetMapping("/api/v1/comments")
-    public CommentsListResponseDto getComments(
+    public ResponseEntity<CommentsListResponseDto> getComments(
             @RequestParam Long postsId,
             @PageableDefault(size = 10, sort = "createdDate") Pageable pageable) {
-        return commentsService.getList(postsId, pageable);
+        return ResponseEntity.ok().body(commentsService.getList(postsId, pageable));
     }
 
     @GetMapping("/api/v1/comments/{id}")
-    public CommentsResponseDto getCommentById(@PathVariable Long id) {
-        return commentsService.findById(id);
+    public ResponseEntity<CommentsResponseDto> getCommentById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(commentsService.findById(id));
     }
 
     @Secured(MemberRole.ROLES.USER)
     @PostAuthorize("isAuthenticated() and (( returnObject.name == principal.name ) or hasRole('ROLE_ADMIN'))")
     @PutMapping("/api/v1/comments/{id}")
-    public CommentsResponseDto updateComment(@PathVariable Long id, @RequestBody CommentsUpdateRequestDto requestDto) {
-        return commentsService.update(id, requestDto);
+    public ResponseEntity<CommentsResponseDto> updateComment(@PathVariable Long id, @RequestBody CommentsUpdateRequestDto requestDto) {
+        return ResponseEntity.ok().body(commentsService.update(id, requestDto));
     }
 
 }
