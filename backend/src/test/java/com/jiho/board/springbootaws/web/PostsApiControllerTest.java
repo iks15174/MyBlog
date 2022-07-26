@@ -129,10 +129,10 @@ public class PostsApiControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.totalPage").value(2))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.page").value(0))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title0"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content0"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].title").value("title9"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].content").value("content9"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title1"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content1"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].title").value("title10"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].content").value("content10"))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.length()").value(10));
         }
 
@@ -191,7 +191,7 @@ public class PostsApiControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
                                 .content(new ObjectMapper().writeValueAsString(requestDto)))
-                                .andExpect(status().isOk())
+                                .andExpect(status().isCreated())
                                 .andReturn();
 
                 Long postId = Long.parseLong(result.getResponse().getContentAsString());
