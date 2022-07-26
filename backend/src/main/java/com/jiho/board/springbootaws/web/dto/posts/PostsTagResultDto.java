@@ -22,7 +22,7 @@ public class PostsTagResultDto {
         this.title = entity.getTitle();
         this.content = entity.getContent();
         this.author = entity.getAuthor().getName();
-        this.category = entity.getCategory().getName();
+        this.category = entity.getCategory() != null ? entity.getCategory().getName() : "";
         for(Tag t:tagsEntity){
             this.tags.add(t.getName());
         }
