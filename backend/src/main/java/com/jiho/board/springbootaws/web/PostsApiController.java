@@ -13,6 +13,8 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,27 +33,27 @@ public class PostsApiController {
 
     @Secured(MemberRole.ROLES.USER)
     @PostMapping("/api/v1/posts")
-    public Long save(@RequestBody PostsSaveRequestDto requestDto) {
-        return postsService.save(requestDto);
+    public ResponseEntity<Long> save(@RequestBody PostsSaveRequestDto requestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(postsService.save(requestDto));
     }
 
     @GetMapping("/api/v1/posts")
-    public PageResultDto<PostsTagResultDto, List<Object>> getList(
+    public ResponseEntity<PageResultDto<PostsTagResultDto, List<Object>>> getList(
             @RequestParam(value = "type", required = false, defaultValue = "") String type,
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(value = "category", required = false, defaultValue = "") ArrayList<Long> categoryIds,
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return postsService.getList(type, keyword, categoryIds, pageable);
+        return ResponseEntity.ok().body(postsService.getList(type, keyword, categoryIds, pageable));
     }
 
     @GetMapping("/api/v1/posts/{id}")
-    public PostsResponseDto findById(@PathVariable Long id) {
-        return postsService.findById(id);
+    public ResponseEntity<PostsResponseDto> findById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(postsService.findById(id));
     }
 
     @Secured(MemberRole.ROLES.USER)
     @PutMapping("/api/v1/posts/{id}")
-    public Long update(@PathVariable Long id, @RequestBody PostsUpdateRequestDto requestDto) {
-        return postsService.update(id, requestDto);
+    public ResponseEntity<Long> update(@PathVariable Long id, @RequestBody PostsUpdateRequestDto requestDto) {
+        return ResponseEntity.ok().body(postsService.update(id, requestDto));
     }
 }
