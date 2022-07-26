@@ -99,7 +99,7 @@ public class CommentsApiControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(requestDto)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         List<Comments> all = commentsRepository.findAll();
         assertThat(all.get(0).getContent()).isEqualTo(content);
