@@ -10,4 +10,6 @@ public interface PostTagRepository extends JpaRepository<PostTag, Long>{
 
     @EntityGraph(attributePaths = {"tag"}, type = EntityGraphType.FETCH)
     List<PostTag> findAllByPostsId(Long id);
+
+    Boolean existsByTagId(Long id);
 }
