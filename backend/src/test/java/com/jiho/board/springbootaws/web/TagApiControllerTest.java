@@ -92,7 +92,7 @@ public class TagApiControllerTest {
         String url = "http://localhost:" + port + "/api/v1/tags";
 
         mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isOk());
+                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
 
         List<Tag> tag = tagRepository.findAll();
         assertThat(tag.size()).isEqualTo(1);
@@ -107,7 +107,7 @@ public class TagApiControllerTest {
         String url = "http://localhost:" + port + "/api/v1/tags";
 
         mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isOk());
+                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
 
         List<Tag> tag = tagRepository.findAll();
         assertThat(tag.size()).isEqualTo(1);
