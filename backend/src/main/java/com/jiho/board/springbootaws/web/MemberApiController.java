@@ -38,10 +38,4 @@ public class MemberApiController {
     public ResponseEntity<TokenDto> postMethodName(@RequestBody TokenDto requestDto) {
         return ResponseEntity.ok().body(memberService.reissue(requestDto));
     }
-
-    @GetMapping("/api/v1/auth/test")
-    public void test() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(((AuthMemberDto) authentication.getPrincipal()).getUsername());
-    }
 }
