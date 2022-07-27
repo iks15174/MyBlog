@@ -1,6 +1,5 @@
 package com.jiho.board.springbootaws.web;
 
-import com.jiho.board.springbootaws.domain.member.MemberRole;
 import com.jiho.board.springbootaws.service.posts.PostsService;
 import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
@@ -15,7 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class PostsApiController {
     private final PostsService postsService;
 
-    @Secured(MemberRole.ROLES.USER)
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @PostMapping("/api/v1/posts")
     public ResponseEntity<Long> save(@RequestBody PostsSaveRequestDto requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postsService.save(requestDto));
@@ -51,7 +50,7 @@ public class PostsApiController {
         return ResponseEntity.ok().body(postsService.findById(id));
     }
 
-    @Secured(MemberRole.ROLES.USER)
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @PutMapping("/api/v1/posts/{id}")
     public ResponseEntity<Long> update(@PathVariable Long id, @RequestBody PostsUpdateRequestDto requestDto) {
         return ResponseEntity.ok().body(postsService.update(id, requestDto));

@@ -77,6 +77,9 @@ public class PostsService {
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
         Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
+        if (!entity.getAuthor().getEmail().equals(getCurrentUserEmail())) {
+            throw new CustomBasicException(ErrorCode.FORBIDDEN_USER);
+        }
         Category category = categoryRepository.findById(requestDto.getCategoryId()).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
         if(category.getIsParent()){
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
@@ -88,5 +91,9 @@ public class PostsService {
         }
         entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), category);
         return id;
+    }
+
+    private String getCurrentUserEmail() {
+        return ((AuthMemberDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
     }
 }
