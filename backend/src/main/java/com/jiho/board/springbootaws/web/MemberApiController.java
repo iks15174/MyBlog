@@ -7,6 +7,7 @@ import com.jiho.board.springbootaws.web.dto.member.MemberResponseDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.member.TokenDto;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,19 +24,19 @@ public class MemberApiController {
     private final MemberService memberService;
 
     @PostMapping("/api/v1/auth/signup")
-    public MemberResponseDto singup(@RequestBody MemberSaveRequestDto requestDto) {
-        return memberService.signup(requestDto);
+    public ResponseEntity<MemberResponseDto> singup(@RequestBody MemberSaveRequestDto requestDto) {
+        return ResponseEntity.ok().body(memberService.signup(requestDto));
     }
 
     @PostMapping("/api/v1/auth/login")
-    public TokenDto login(@RequestBody LoginRequestDto requestDto) throws Exception {
-        return memberService.login(requestDto);
+    public ResponseEntity<TokenDto> login(@RequestBody LoginRequestDto requestDto) throws Exception {
+        return ResponseEntity.ok().body(memberService.login(requestDto));
 
     }
 
     @PostMapping("/api/v1/auth/reissue")
-    public TokenDto postMethodName(@RequestBody TokenDto requestDto) {
-        return memberService.reissue(requestDto);
+    public ResponseEntity<TokenDto> postMethodName(@RequestBody TokenDto requestDto) {
+        return ResponseEntity.ok().body(memberService.reissue(requestDto));
     }
 
     @GetMapping("/api/v1/auth/test")
