@@ -44,10 +44,11 @@ public class PostsService {
         AuthMemberDto memberDto = (AuthMemberDto) SecurityContextHolder
                 .getContext().getAuthentication().getPrincipal();
         Member author = memberRepository
-                .findByEmailAndSocial(memberDto.getUsername(), memberDto.getSocial())
+                .findByEmail(memberDto.getUsername())
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
-        Category category = categoryRepository.findById(requestDto.getCategoryId()).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        if(category.getIsParent()){
+        Category category = categoryRepository.findById(requestDto.getCategoryId())
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        if (category.getIsParent()) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
         Set<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toSet());
@@ -61,7 +62,8 @@ public class PostsService {
     @Transactional
     public PageResultDto<PostsTagResultDto, List<Object>> getList(String type, String keyword, ArrayList<Long> category,
             Pageable pageable) {
-        Function<List<Object>, PostsTagResultDto> fn = (result -> new PostsTagResultDto((Posts) result.get(0), (List<Tag>) result.get(1)));
+        Function<List<Object>, PostsTagResultDto> fn = (result -> new PostsTagResultDto((Posts) result.get(0),
+                (List<Tag>) result.get(1)));
         return new PageResultDto<PostsTagResultDto, List<Object>>(
                 postsRepository.searchPost(type, keyword, category, pageable), fn);
     }
@@ -80,8 +82,9 @@ public class PostsService {
         if (!entity.getAuthor().getEmail().equals(getCurrentUserEmail())) {
             throw new CustomBasicException(ErrorCode.FORBIDDEN_USER);
         }
-        Category category = categoryRepository.findById(requestDto.getCategoryId()).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        if(category.getIsParent()){
+        Category category = categoryRepository.findById(requestDto.getCategoryId())
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        if (category.getIsParent()) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
         Set<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toSet());
