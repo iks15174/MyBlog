@@ -97,7 +97,7 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isOk());
+                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
 
                 Category category = categoryRepository.findAll().get(0);
                 assertThat(category.getName()).isEqualTo(categoryName);
@@ -117,7 +117,7 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isOk());
+                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
 
                 Category category = categoryRepository.findAll().get(0);
                 assertThat(category.getName()).isEqualTo(categoryName);
@@ -147,7 +147,7 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isOk());
+                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
 
                 Optional<Category> childCt = categoryRepository.findByIsParent(false);
                 assertThat(childCt.isPresent()).isTrue();
