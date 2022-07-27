@@ -39,6 +39,7 @@ import com.jiho.board.springbootaws.web.dto.tag.TagSaveRequestDto;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -163,6 +164,19 @@ public class TagApiControllerTest {
         assertThat(updatedTag.isPresent()).isTrue();
         assertThat(updatedTag.get().getName()).isEqualTo(updatedTagName);
 
+    }
+
+    @Test
+    @WithMockCustomUser(role = MemberRole.ADMIN)
+    public void Tag_삭제한다() throws Exception {
+        List<TagResponseDto> tag = createTagsWithPost(1, 12);
+        Long deletedTagId = tag.get(3).getId();
+
+        String url = "http://localhost:" + port + "/api/v1/tags/" + deletedTagId;
+        mvc.perform(delete(url)).andExpect(status().isOk());
+
+        assertThat(tagRepository.existsById(deletedTagId)).isFalse();
+        assertThat(postTagRepository.existsByTagId(deletedTagId)).isFalse();
     }
 
     private List<TagResponseDto> createTagsWithPost(int start, int end) {
