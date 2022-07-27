@@ -45,4 +45,12 @@ public class TagService {
         return tag.getId();
 
     }
+
+    @Transactional
+    public Long delete(Long id) {
+        Tag tag = tagRepository.findByIdWithPosts(id).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_TAG));
+        tagRepository.delete(tag);
+        return tag.getId();
+
+    }
 }

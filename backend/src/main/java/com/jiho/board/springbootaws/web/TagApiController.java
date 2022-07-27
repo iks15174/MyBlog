@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,6 +42,12 @@ public class TagApiController {
     @PutMapping("/api/v1/tags/{id}")
     public ResponseEntity<Long> update(@PathVariable Long id, @RequestBody TagSaveRequestDto requestDto){
         return ResponseEntity.ok().body(tagService.update(id, requestDto));
+    }
+
+    @Secured(MemberRole.ROLES.ADMIN)
+    @DeleteMapping("/api/v1/tags/{id}")
+    public ResponseEntity<Long> delete(@PathVariable Long id) {
+        return ResponseEntity.ok().body(tagService.delete(id));
     }
 
     
