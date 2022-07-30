@@ -81,7 +81,6 @@
     "preinstall": "npx npm-force-resolutions",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "build:index": "ts-node-script scripts/generate_index.ts"
+    "lint": "vue-cli-service lint"
   }
 }
