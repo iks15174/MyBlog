@@ -1,0 +1,48 @@
+version: '3'
+services:
+  # db:
+  #   image: postgres
+  #   #hostname: postgres
+  #   container_name: books-docker-db
+  #   environment:
+  #     POSTGRES_PASSWORD: books
+  #     POSTGRES_USER: books
+  #     POSTGRES_DB: books
+  #   ports:
+  #     #- 5433:5432
+  #     - target: 5432
+  #       published: 5433
+  #       protocol: tcp
+  #       mode: host
+  #   networks:
+  #     - backdb
+  #   expose: 
+  #     - 5433
+  
+  back:
+    build: ./backend
+    image: myblog_back:latest
+    container_name: backend
+    ports:
+      - 8080:8080
+    # depends_on:
+    #   - db
+    # networks:
+    #   - backdb
+
+  front:
+    build: ./frontend
+    image: myblog_front:latest
+    container_name: frontend
+    ports:
+      - 80:80
+    depends_on:
+      - back
+    networks: 
+      - frontback     
+  
+networks: 
+  backdb:
+    driver: bridge
+  frontback:
+    driver: bridge
