@@ -34,7 +34,7 @@ public class CommentsService {
                 AuthMemberDto memberDto = (AuthMemberDto) SecurityContextHolder
                                 .getContext().getAuthentication().getPrincipal();
                 Member author = memberRepository
-                                .findByEmailAndSocial(memberDto.getUsername(), memberDto.getSocial())
+                                .findByEmail(memberDto.getUsername())
                                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
 
                 Long postsId = requestDto.getPostsId();
