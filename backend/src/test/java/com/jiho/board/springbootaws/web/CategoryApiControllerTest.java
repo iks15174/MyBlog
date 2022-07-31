@@ -169,6 +169,7 @@ public class CategoryApiControllerTest {
                         int postCnt = 0;
                         if(!categories.get(i).getIsParent()){
                                 postCnt = i + 1;
+                                continue;
                         }
                         actions = actions.andExpect(
                                         MockMvcResultMatchers.jsonPath("$.[" + i + "].name")
