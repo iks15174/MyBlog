@@ -8,6 +8,8 @@ echo "Build backend file"
 ./gradlew clean build -x test
 cd ..
 
+# 프론트엔드 빌르 로직 및 설명 추가할 것
+
 echo "Check project aleary deployed"
 FRONT_CONTAINER_NM=front
 ALEADY_DELPOYED=$(docker ps --filter "name=$FRONT_CONTAINER_NM" | wc -l)
