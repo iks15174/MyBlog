@@ -19,10 +19,12 @@ services:
   #   expose: 
   #     - 5433
   
-  back:
-    build: ./backend
-    image: myblog_back:latest
-    container_name: backend
+  back1:
+    build: 
+      context: ./backend
+      args:
+        APPLI_CONFIG: back1
+    container_name: backend1
     ports:
       - 8080:8080
     networks: 
@@ -32,9 +34,23 @@ services:
     # networks:
     #   - backdb
 
+  back2:
+    build: 
+      context: ./backend
+      args:
+        APPLI_CONFIG: back2
+    container_name: backend2
+    ports:
+      - 8081:8081
+    networks: 
+      - frontback
+    # depends_on:
+    #   - db
+    # networks:
+    #   - backdb
+
   front:
     build: ./frontend
-    image: myblog_front:latest
     container_name: frontend
     ports:
       - 80:80

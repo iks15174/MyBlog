@@ -1,7 +1,9 @@
 FROM adoptopenjdk/openjdk11
 WORKDIR /app
-COPY . .
-RUN ./gradlew clean build -x test
 ARG JAR_FILE_PATH=./build/libs/*.jar
-RUN cp ${JAR_FILE_PATH} ./app.jar
-ENTRYPOINT [ "java", "-jar", "app.jar" ]
+ARG APPLI_CONFIG
+RUN mkdir config
+COPY ./src/main/resources/* ./config/
+COPY ${JAR_FILE_PATH} ./app.jar
+ENV APPLI_CONFIG=${APPLI_CONFIG}
+ENTRYPOINT java -jar -Dspring.config.location=./config/application-${APPLI_CONFIG}.properties,./config/application-oauth.properties -Dspring.profiles.active=${APPLI_CONFIG} app.jar
