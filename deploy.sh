@@ -8,7 +8,14 @@ echo "Build backend file"
 ./gradlew clean build -x test
 cd ..
 
-# 프론트엔드 빌르 로직 및 설명 추가할 것
+echo "Move to frontend directory"
+cd frontend
+
+echo "Build frontend file"
+./npm run build
+cd ..
+
+# 설명 추가할 것
 
 echo "Check project aleary deployed"
 FRONT_CONTAINER_NM=front
