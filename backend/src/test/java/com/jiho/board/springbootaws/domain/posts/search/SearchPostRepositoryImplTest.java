@@ -55,10 +55,15 @@ public class SearchPostRepositoryImplTest {
         postTagRepository.deleteAll();
         postsRepository.deleteAll();
         tagRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 
     @BeforeEach
     public void setup() {
+        // postTagRepository.deleteAll();
+        // postsRepository.deleteAll();
+        // tagRepository.deleteAll();
+        // memberRepository.deleteAll();
         testMember = memberRepository.save(MemberSaveRequestDto.builder()
                 .email("testUser@test.com")
                 .password("1234")
@@ -73,19 +78,24 @@ public class SearchPostRepositoryImplTest {
         String content = "테스트 본문";
         String tagName = "태그";
         HashMap<Long, Integer> tagPerPost = new HashMap<Long, Integer>();
+        List<Long> postIds = new ArrayList<>();
 
         IntStream.rangeClosed(1, 10).forEach(i -> {
             Posts post = Posts.builder().title(title + i)
                     .content(content + i)
                     .author(testMember).build();
-            tagPerPost.put(postsRepository.save(post).getId(), 0);
+            post = postsRepository.save(post);
+            tagPerPost.put(post.getId(), 0);
+            postIds.add(post.getId());
         });
 
         IntStream.rangeClosed(1, 30).forEach(i -> {
-            long postId = (long) (Math.random() * 10) + 1;
+            int postIdIdx = (int) (Math.random() * 10);
+            Long postId = postIds.get(postIdIdx);
             Optional<Posts> matchPost = postsRepository.findById(postId);
             Tag tag = Tag.builder().name(tagName + i).build();
             tagRepository.save(tag);
+            System.out.println(postId + " - " + matchPost.isPresent());
             PostTag postTag = PostTag.builder().posts(matchPost.get())
                     .tag(tag).build();
             postTagRepository.save(postTag);

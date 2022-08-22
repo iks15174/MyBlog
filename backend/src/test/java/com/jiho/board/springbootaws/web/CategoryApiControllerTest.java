@@ -68,6 +68,7 @@ public class CategoryApiControllerTest {
         public void clean() throws Exception {
                 postsRepository.deleteAll();
                 categoryRepository.deleteAll();
+                memberRepository.deleteAll();
         }
 
         @BeforeEach
