@@ -30,81 +30,79 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import javax.transaction.Transactional;
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CommentsApiControllerTest {
 
-    private Member testMember;
+        private Member testMember;
 
-    private MockMvc mvc;
+        private MockMvc mvc;
 
-    @LocalServerPort
-    private int port;
+        @LocalServerPort
+        private int port;
 
-    @Autowired
-    private WebApplicationContext context;
+        @Autowired
+        private WebApplicationContext context;
 
-    @Autowired
-    private CommentsRepository commentsRepository;
+        @Autowired
+        private CommentsRepository commentsRepository;
 
-    @Autowired
-    private PostsRepository postsRepository;
+        @Autowired
+        private PostsRepository postsRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+        @Autowired
+        private MemberRepository memberRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        @Autowired
+        private PasswordEncoder passwordEncoder;
 
-    @AfterEach
-    public void tearDown() throws Exception {
-        postsRepository.deleteAll();
-        memberRepository.deleteAll();
-        commentsRepository.deleteAll();
-    }
+        @AfterEach
+        public void tearDown() throws Exception {
+                commentsRepository.deleteAll();
+                postsRepository.deleteAll();
+                memberRepository.deleteAll();
+        }
 
-    @BeforeEach
-    public void setup() {
-        mvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-        // WithMockCustomUser의 정보와 일치하는 유저 생성
-        testMember = memberRepository.save(MemberSaveRequestDto.builder()
-                .email("testUser@test.com")
-                .password("1234")
-                .name("testUser")
-                .social(Social.NoSocial).build()
-                .toEntity(passwordEncoder));
-    }
+        @BeforeEach
+        public void setup() {
+                mvc = MockMvcBuilders
+                                .webAppContextSetup(context)
+                                .apply(springSecurity())
+                                .build();
+                // WithMockCustomUser의 정보와 일치하는 유저 생성
+                testMember = memberRepository.save(MemberSaveRequestDto.builder()
+                                .email("testUser@test.com")
+                                .password("1234")
+                                .name("testUser")
+                                .social(Social.NoSocial).build()
+                                .toEntity(passwordEncoder));
+        }
 
-    @Test
-    @Transactional
-    @WithMockCustomUser
-    public void Comments_등록된다() throws Exception {
-        Posts testPosts = postsRepository
-                .save(Posts.builder().title("title").content("content").build());
+        @Test
+        @WithMockCustomUser
+        public void Comments_등록된다() throws Exception {
+                Posts testPosts = postsRepository
+                                .save(Posts.builder().title("title").content("content").build());
 
-        String content = "comment content";
-        Long postsId = testPosts.getId();
+                String content = "comment content";
+                Long postsId = testPosts.getId();
 
-        CommentsSaveRequestDto requestDto = CommentsSaveRequestDto.builder()
-                .content(content)
-                .postsId(postsId).build();
+                CommentsSaveRequestDto requestDto = CommentsSaveRequestDto.builder()
+                                .content(content)
+                                .postsId(postsId).build();
 
-        String url = "http://localhost:" + port + "/api/v1/comments";
+                String url = "http://localhost:" + port + "/api/v1/comments";
 
-        mvc.perform(post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(requestDto)))
-                .andExpect(status().isCreated());
+                mvc.perform(post(url)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isCreated());
 
-        List<Comments> all = commentsRepository.findAll();
-        assertThat(all.get(0).getContent()).isEqualTo(content);
-        assertThat(all.get(0).getAuthor().getId()).isEqualTo(testMember.getId());
-        assertThat(all.get(0).getPosts().getId()).isEqualTo(postsId);
+                List<Comments> all = commentsRepository.findAll();
+                assertThat(all.size()).isEqualTo(1);
+                assertThat(all.get(0).getContent()).isEqualTo(content);
+                assertThat(all.get(0).getAuthor().getId()).isEqualTo(testMember.getId());
+                assertThat(all.get(0).getPosts().getId()).isEqualTo(postsId);
 
-    }
+        }
 }

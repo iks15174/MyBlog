@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import javax.transaction.Transactional;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SearchPostRepositoryImplTest {
 
     private Member testMember;
-    
+
     @Autowired
     PostsRepository postsRepository;
 
@@ -70,7 +68,6 @@ public class SearchPostRepositoryImplTest {
     }
 
     @Test
-    @Transactional
     public void 태그와함께_게시글_불러오기() {
         String title = "테스트 게시글";
         String content = "테스트 본문";
@@ -79,18 +76,18 @@ public class SearchPostRepositoryImplTest {
 
         IntStream.rangeClosed(1, 10).forEach(i -> {
             Posts post = Posts.builder().title(title + i)
-                                        .content(content + i)
-                                        .author(testMember).build();
+                    .content(content + i)
+                    .author(testMember).build();
             tagPerPost.put(postsRepository.save(post).getId(), 0);
         });
 
         IntStream.rangeClosed(1, 30).forEach(i -> {
-            long postId = (long)(Math.random() * 10) + 1;
+            long postId = (long) (Math.random() * 10) + 1;
             Optional<Posts> matchPost = postsRepository.findById(postId);
             Tag tag = Tag.builder().name(tagName + i).build();
             tagRepository.save(tag);
             PostTag postTag = PostTag.builder().posts(matchPost.get())
-                                                .tag(tag).build();
+                    .tag(tag).build();
             postTagRepository.save(postTag);
             tagPerPost.replace(postId, tagPerPost.get(postId) + 1);
         });
@@ -98,8 +95,8 @@ public class SearchPostRepositoryImplTest {
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
         Page<List<Object>> postList = postsRepository.searchPost("", "", new ArrayList<Long>(), pageable);
-        for(List<Object> ptd: postList.getContent()){
-            assertThat(((List<Tag>)ptd.get(1)).size()).isEqualTo(tagPerPost.get(((Posts)ptd.get(0)).getId()));
+        for (List<Object> ptd : postList.getContent()) {
+            assertThat(((List<Tag>) ptd.get(1)).size()).isEqualTo(tagPerPost.get(((Posts) ptd.get(0)).getId()));
         }
         assertThat(postList.getContent().size()).isEqualTo(10);
     }
