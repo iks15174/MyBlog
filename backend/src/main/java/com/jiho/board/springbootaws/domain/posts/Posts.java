@@ -21,13 +21,10 @@ import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.web.dto.posts.TagDto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@AllArgsConstructor
-@Builder
 @ToString
 @Getter
 @NoArgsConstructor
@@ -49,7 +46,6 @@ public class Posts extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
 
-    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy="posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostTag> tags = new ArrayList<>();
 
