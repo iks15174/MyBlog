@@ -10,6 +10,7 @@ import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
+import com.jiho.board.springbootaws.service.member.MemberService;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsListResponseDto;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsResponseDto;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class CommentsService {
+        private final MemberService memberService;
         private final CommentsRepository commentsRepository;
         private final PostsRepository postsRepository;
         private final MemberRepository memberRepository;
@@ -59,6 +61,7 @@ public class CommentsService {
         public CommentsResponseDto update(Long commentId, CommentsUpdateRequestDto requestDto) {
                 Comments entity = commentsRepository.findById(commentId)
                                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_COMMENT));
+                memberService.checkCurUserIsAuthor(entity.getAuthor());
                 entity.update(requestDto.getContent());
                 return new CommentsResponseDto(entity);
         }
