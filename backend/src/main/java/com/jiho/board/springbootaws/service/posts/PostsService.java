@@ -18,6 +18,7 @@ import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
+import com.jiho.board.springbootaws.service.member.MemberService;
 import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
@@ -34,18 +35,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class PostsService {
+    private final MemberService memberService;
     private final PostsRepository postsRepository;
-    private final MemberRepository memberRepository;
     private final TagRepository tagRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
-        AuthMemberDto memberDto = (AuthMemberDto) SecurityContextHolder
-                .getContext().getAuthentication().getPrincipal();
-        Member author = memberRepository
-                .findByEmail(memberDto.getUsername())
-                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
+        Member author = memberService.getCurLoginedUser();
         Category category = categoryRepository.findById(requestDto.getCategoryId())
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
         if (category.getIsParent()) {
