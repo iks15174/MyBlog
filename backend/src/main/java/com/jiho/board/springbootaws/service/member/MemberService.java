@@ -40,6 +40,13 @@ public class MemberService {
     }
 
     @Transactional
+    public void checkCurUserIsAuthor(Member author) {
+        if(!author.getEmail().equals(((AuthMemberDto) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername())){
+            throw new CustomBasicException(ErrorCode.FORBIDDEN_USER);
+        }
+    }
+
+    @Transactional
     public MemberResponseDto signup(MemberSaveRequestDto requestDto) throws CustomBasicException {
         if (memberRepository.existsByEmailAndSocial(requestDto.getEmail(), requestDto.getSocial())) {
             throw new CustomBasicException(ErrorCode.EMAIL_DUPLICATED_ERROR);
