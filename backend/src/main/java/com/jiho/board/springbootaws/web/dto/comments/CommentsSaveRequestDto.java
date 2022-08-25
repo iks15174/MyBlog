@@ -21,6 +21,6 @@ public class CommentsSaveRequestDto {
     }
 
     public Comments toEntity(Posts posts, Member author) {
-        return Comments.builder().content(this.content).author(author).posts(posts).build();
+        return new Comments(this.content, author, posts);
     }
 }
