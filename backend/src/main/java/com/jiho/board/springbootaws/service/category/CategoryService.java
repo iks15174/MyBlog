@@ -49,4 +49,10 @@ public class CategoryService {
         List<Category> entities = categoryRepository.findAllSubCategory();
         return entities.stream().map(entity -> new CategoryResponseDto(entity)).collect(Collectors.toList());
     }
+
+    @Transactional
+    public Category getCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+    }
 }
