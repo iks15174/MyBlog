@@ -1,6 +1,7 @@
 package com.jiho.board.springbootaws.domain.posts.search;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.jiho.board.springbootaws.domain.category.Category;
+import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.Social;
@@ -48,6 +51,9 @@ public class SearchPostRepositoryImplTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @AfterEach
@@ -56,14 +62,11 @@ public class SearchPostRepositoryImplTest {
         postsRepository.deleteAll();
         tagRepository.deleteAll();
         memberRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @BeforeEach
     public void setup() {
-        // postTagRepository.deleteAll();
-        // postsRepository.deleteAll();
-        // tagRepository.deleteAll();
-        // memberRepository.deleteAll();
         testMember = memberRepository.save(MemberSaveRequestDto.builder()
                 .email("testUser@test.com")
                 .password("1234")
@@ -80,10 +83,10 @@ public class SearchPostRepositoryImplTest {
         HashMap<Long, Integer> tagPerPost = new HashMap<Long, Integer>();
         List<Long> postIds = new ArrayList<>();
 
+        Category category = createChildParentCategory(1, 1).get(0);
+
         IntStream.rangeClosed(1, 10).forEach(i -> {
-            Posts post = Posts.builder().title(title + i)
-                    .content(content + i)
-                    .author(testMember).build();
+            Posts post = new Posts(title + i, content + i, testMember, category, Collections.emptyList());
             post = postsRepository.save(post);
             tagPerPost.put(post.getId(), 0);
             postIds.add(post.getId());
@@ -95,7 +98,6 @@ public class SearchPostRepositoryImplTest {
             Optional<Posts> matchPost = postsRepository.findById(postId);
             Tag tag = Tag.builder().name(tagName + i).build();
             tagRepository.save(tag);
-            System.out.println(postId + " - " + matchPost.isPresent());
             PostTag postTag = PostTag.builder().posts(matchPost.get())
                     .tag(tag).build();
             postTagRepository.save(postTag);
@@ -109,6 +111,24 @@ public class SearchPostRepositoryImplTest {
             assertThat(((List<Tag>) ptd.get(1)).size()).isEqualTo(tagPerPost.get(((Posts) ptd.get(0)).getId()));
         }
         assertThat(postList.getContent().size()).isEqualTo(10);
+    }
+
+    private List<Category> createChildParentCategory(int start, int end) {
+        String parentNm = "parentCategory";
+        String childNm = "childCategory";
+        Boolean parent = true;
+
+        List<Category> childCategories = new ArrayList<Category>();
+        IntStream.rangeClosed(start, end).forEach(i -> {
+            Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
+            categoryRepository.save(parentCt);
+            Category childCt = Category.builder().name(childNm + i).isParent(!parent)
+                    .parentCategory(parentCt)
+                    .build();
+            categoryRepository.save(childCt);
+            childCategories.add(childCt);
+        });
+        return childCategories;
     }
 
 }

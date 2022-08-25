@@ -16,12 +16,15 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jiho.board.springbootaws.domain.category.Category;
+import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.member.MemberRole;
@@ -69,6 +72,9 @@ public class TagApiControllerTest {
     private MemberRepository memberRepository;
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @AfterEach
@@ -76,6 +82,7 @@ public class TagApiControllerTest {
         postsRepository.deleteAll();
         tagRepository.deleteAll();
         memberRepository.deleteAll();
+        categoryRepository.deleteAll();
     }
 
     @BeforeEach
@@ -183,19 +190,38 @@ public class TagApiControllerTest {
         String baseTagName = "tag";
         String baseTitle = "postTitle";
         String baseContent = "postContent";
+        Category baseCategory = createChildParentCategory(1, 1).get(0);
 
         List<TagResponseDto> result = new ArrayList<>();
         IntStream.rangeClosed(start, end).forEach(i -> {
             Tag tag = Tag.builder().name(baseTagName + i).build();
             tagRepository.save(tag);
             IntStream.rangeClosed(start, i).forEach(j -> {
-                Posts posts = Posts.builder().title(baseTitle).author(testMember).content(baseContent).build();
+                List<PostTag> postTag = Arrays.asList(PostTag.builder().tag(tag).build());
+                Posts posts = new Posts(baseTitle, baseContent, testMember, baseCategory, postTag);
                 postsRepository.save(posts);
-                postTagRepository.save(PostTag.builder().posts(posts).tag(tag).build());
             });
             result.add(TagResponseDto.builder().id(tag.getId()).name(tag.getName()).postCnt((long) (i - start + 1))
                     .build());
         });
         return result;
+    }
+
+    private List<Category> createChildParentCategory(int start, int end) {
+        String parentNm = "parentCategory";
+        String childNm = "childCategory";
+        Boolean parent = true;
+
+        List<Category> childCategories = new ArrayList<Category>();
+        IntStream.rangeClosed(start, end).forEach(i -> {
+            Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
+            categoryRepository.save(parentCt);
+            Category childCt = Category.builder().name(childNm + i).isParent(!parent)
+                    .parentCategory(parentCt)
+                    .build();
+            categoryRepository.save(childCt);
+            childCategories.add(childCt);
+        });
+        return childCategories;
     }
 }

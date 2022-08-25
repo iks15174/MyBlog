@@ -83,6 +83,7 @@ public class PostsApiControllerTest {
                 postsRepository.deleteAll();
                 tagRepository.deleteAll();
                 memberRepository.deleteAll();
+                categoryRepository.deleteAll();
         }
 
         @BeforeEach
@@ -102,43 +103,37 @@ public class PostsApiControllerTest {
 
         @Test
         public void Post_불러온다() throws Exception {
-                List<Posts> post = createPosts(1);
-                List<Tag> tags = createTags(1, 10);
-                tags.forEach(t -> {
-                        postTagRepository.save(PostTag.builder()
-                                        .posts(post.get(0))
-                                        .tag(t).build());
-                });
-                String url = "http://localhost:" + port + "/api/v1/posts/" + post.get(0).getId();
+                List<Posts> post = createPostsWithTagCategory(10);
+                String url = "http://localhost:" + port + "/api/v1/posts/" + post.get(9).getId();
 
                 mvc.perform(get(url))
                                 .andExpect(status().isOk())
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(post.get(0).getId()))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(post.get(0).getTitle()))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(0).getContent()))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(post.get(9).getId()))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(post.get(9).getTitle()))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(9).getContent()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.tags.[*].name", Matchers
-                                                .containsInAnyOrder(tags.stream().map(t -> t.getName()).toArray())));
+                                                .containsInAnyOrder(post.get(9).getTags().stream().map(t -> t.getTag().getName()).toArray())));
         }
 
         @Test
         public void PostsList_불러온다() throws Exception {
-                createPosts(11);
+                createPostsWithTagCategory(11);
                 String url = "http://localhost:" + port + "/api/v1/posts";
 
                 mvc.perform(get(url))
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.totalPage").value(2))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.pageInfo.page").value(0))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title1"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content1"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].title").value("title10"))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].content").value("content10"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].title").value("title0"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[0].content").value("content0"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].title").value("title9"))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.data.[9].content").value("content9"))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.data.length()").value(10));
         }
 
         @Test
         public void PostsList_검색한다() throws Exception {
-                createPosts(11); // title0, content0 ~ title10, content10 post가 만들어진다.
+                createPostsWithTagCategory(11); // title0, content0 ~ title10, content10 post가 만들어진다.
                 String url = "http://localhost:" + port + "/api/v1/posts" + "?type=tc&keyword=2"; // 하나가 검색되야 한다.
 
                 mvc.perform(get(url))
@@ -161,10 +156,13 @@ public class PostsApiControllerTest {
                 String url = "http://localhost:" + port + "/api/v1/posts"
                                 + "?type=tc&keyword=2&category=4&category=24";
                 ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
-                for(int i = 0; i < filteredPost.size(); i++){
-                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].title").value(filteredPost.get(i).getTitle()));
-                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].content").value(filteredPost.get(i).getContent()));
-                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].category").value(filteredPost.get(i).getCategory().getName()));
+                for (int i = 0; i < filteredPost.size(); i++) {
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].title")
+                                        .value(filteredPost.get(i).getTitle()));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].content")
+                                        .value(filteredPost.get(i).getContent()));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.data.[" + i + "].category")
+                                        .value(filteredPost.get(i).getCategory().getName()));
 
                 }
 
@@ -216,14 +214,12 @@ public class PostsApiControllerTest {
                 List<Category> categories = createChildParentCategory(1, 2);
                 Category oldChildCt = categories.get(0);
                 Category newChildCt = categories.get(1);
-
-                Posts tempPost = Posts.builder().title("title").content("content").author(testMember)
-                                .category(oldChildCt)
-                                .build();
                 List<PostTag> postTag = oldTag.stream()
-                                .map(ot -> PostTag.builder().posts(tempPost).tag(ot).build())
+                                .map(ot -> PostTag.builder().tag(ot).build())
                                 .collect(Collectors.toList());
-                Posts savedPosts = postsRepository.save(tempPost.setTags(postTag));
+
+                Posts tempPost = new Posts("title", "content", testMember, oldChildCt, postTag);
+                Posts savedPosts = postsRepository.save(tempPost);
 
                 Long updateId = savedPosts.getId();
                 String updatedTitle = "title-update";
@@ -262,8 +258,7 @@ public class PostsApiControllerTest {
         @Test
         public void BaseTimeEntity_등록() {
                 LocalDateTime now = LocalDateTime.of(2022, 2, 8, 0, 0, 0);
-                postsRepository.save(Posts.builder().title("title").content("content").build());
-
+                createPostsWithTagCategory(1);
                 List<Posts> postsList = postsRepository.findAll();
 
                 Posts posts = postsList.get(0);
@@ -274,37 +269,21 @@ public class PostsApiControllerTest {
 
         // i번 posts는 1 ~ i번까지의 태그와 i번 카테고리를 가진다.
         private List<Posts> createPostsWithTagCategory(int postsNum) {
-                List<Posts> posts = createPosts(postsNum);
+                List<Posts> posts = new ArrayList<>();
                 List<Tag> tags = createTags(1, postsNum);
                 List<Category> categories = createChildParentCategory(1, postsNum);
-                for (int i = 0; i < posts.size(); i++) {
+                for (int i = 0; i < postsNum; i++) {
                         List<Tag> subTag = tags.subList(0, i + 1);
-                        Posts curPost = posts.get(i);
                         List<PostTag> postTags = new ArrayList<PostTag>();
                         subTag.forEach(st -> {
-                                PostTag postTag = PostTag.builder().posts(curPost).tag(st).build();
+                                PostTag postTag = PostTag.builder().tag(st).build();
                                 postTags.add(postTag);
                         });
-                        curPost.setTags(postTags);
-                        curPost.setCategory(categories.get(i));
+                        Posts curPost = new Posts("title" + i, "content" + i, testMember, categories.get(i), postTags);
                         postsRepository.save(curPost);
+                        posts.add(curPost);
                 }
                 return posts;
-        }
-
-        private List<Posts> createPosts(int postsNum) {
-                String baseTitle = "title";
-                String baseContent = "content";
-                List<Posts> result = new ArrayList<>();
-                for (int i = 0; i < postsNum; i++) {
-                        result.add(Posts.builder()
-                                        .title(baseTitle + Integer.toString(i + 1))
-                                        .content(baseContent + Integer.toString(i + 1))
-                                        .author(testMember)
-                                        .build());
-                }
-                postsRepository.saveAll(result);
-                return result;
         }
 
         private List<Tag> createTags(int start, int end) {

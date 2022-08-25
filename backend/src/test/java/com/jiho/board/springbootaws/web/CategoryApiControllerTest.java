@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -214,12 +215,8 @@ public class CategoryApiControllerTest {
                 String baseContent = "content";
                 List<Posts> result = new ArrayList<>();
                 for (int i = 0; i < postsNum; i++) {
-                        result.add(Posts.builder()
-                                        .title(baseTitle + Integer.toString(i))
-                                        .content(baseContent + Integer.toString(i))
-                                        .author(testMember)
-                                        .category(category)
-                                        .build());
+                        result.add(new Posts(baseTitle + i, baseContent + i, testMember, category, Collections.emptyList()));
+                                        
                 }
                 postsRepository.saveAll(result);
                 return result;

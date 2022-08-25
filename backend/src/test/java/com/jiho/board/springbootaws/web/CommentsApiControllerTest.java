@@ -1,6 +1,8 @@
 package com.jiho.board.springbootaws.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jiho.board.springbootaws.domain.category.Category;
+import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.comments.Comments;
 import com.jiho.board.springbootaws.domain.comments.CommentsRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
@@ -28,7 +30,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CommentsApiControllerTest {
@@ -53,6 +58,9 @@ public class CommentsApiControllerTest {
         private MemberRepository memberRepository;
 
         @Autowired
+        private CategoryRepository categoryRepository;
+
+        @Autowired
         private PasswordEncoder passwordEncoder;
 
         @AfterEach
@@ -60,6 +68,7 @@ public class CommentsApiControllerTest {
                 commentsRepository.deleteAll();
                 postsRepository.deleteAll();
                 memberRepository.deleteAll();
+                categoryRepository.deleteAll();
         }
 
         @BeforeEach
@@ -80,8 +89,9 @@ public class CommentsApiControllerTest {
         @Test
         @WithMockCustomUser
         public void Comments_등록된다() throws Exception {
+                List<Category> categories = createChildParentCategory(1, 1);
                 Posts testPosts = postsRepository
-                                .save(Posts.builder().title("title").content("content").build());
+                                .save(new Posts("title", "content", testMember, categories.get(0), Collections.emptyList()));
 
                 String content = "comment content";
                 Long postsId = testPosts.getId();
@@ -105,4 +115,22 @@ public class CommentsApiControllerTest {
                 assertThat(all.get(0).getPosts().getId()).isEqualTo(postsId);
 
         }
+
+        private List<Category> createChildParentCategory(int start, int end) {
+                String parentNm = "parentCategory";
+                String childNm = "childCategory";
+                Boolean parent = true;
+        
+                List<Category> childCategories = new ArrayList<Category>();
+                IntStream.rangeClosed(start, end).forEach(i -> {
+                    Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
+                    categoryRepository.save(parentCt);
+                    Category childCt = Category.builder().name(childNm + i).isParent(!parent)
+                            .parentCategory(parentCt)
+                            .build();
+                    categoryRepository.save(childCt);
+                    childCategories.add(childCt);
+                });
+                return childCategories;
+            }
 }
