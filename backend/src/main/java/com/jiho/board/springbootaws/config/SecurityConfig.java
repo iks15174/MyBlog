@@ -4,7 +4,6 @@ import com.jiho.board.springbootaws.config.filter.JwtFilter;
 import com.jiho.board.springbootaws.config.handler.CustomAuthenticationEntryPoint;
 import com.jiho.board.springbootaws.config.handler.OAuth2FailureHandler;
 import com.jiho.board.springbootaws.config.handler.OAuth2SuccessHandler;
-import com.jiho.board.springbootaws.util.JWTUtil;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
