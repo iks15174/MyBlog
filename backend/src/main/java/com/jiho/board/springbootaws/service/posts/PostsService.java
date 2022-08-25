@@ -2,22 +2,21 @@ package com.jiho.board.springbootaws.service.posts;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
 import com.jiho.board.springbootaws.domain.category.Category;
-import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
-import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
+import com.jiho.board.springbootaws.service.category.CategoryService;
 import com.jiho.board.springbootaws.service.member.MemberService;
+import com.jiho.board.springbootaws.service.tag.TagService;
 import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
@@ -33,24 +32,17 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class PostsService {
     private final MemberService memberService;
+    private final CategoryService categoryService;
+    private final TagService tagService;
     private final PostsRepository postsRepository;
-    private final TagRepository tagRepository;
-    private final CategoryRepository categoryRepository;
 
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
         Member author = memberService.getCurLoginedUser();
-        Category category = categoryRepository.findById(requestDto.getCategoryId())
-                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        if (category.getIsParent()) {
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        Set<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toSet());
-        Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
-        if (tagIds.size() != tagCnt) {
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
-        }
-        return postsRepository.save(requestDto.toEntity(author, category)).getId();
+        Category selectedCategory = categoryService.getCategoryById(requestDto.getCategoryId());
+        List<Long> tagIds = requestDto.getTagDto().stream().map(t -> t.getId()).collect(Collectors.toList());
+        tagService.checkTagIds(tagIds);
+        return postsRepository.save(requestDto.toEntity(author, selectedCategory)).getId();
     }
 
     @Transactional
@@ -73,19 +65,11 @@ public class PostsService {
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
         Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
-
         memberService.checkCurUserIsAuthor(entity.getAuthor());
-        Category category = categoryRepository.findById(requestDto.getCategoryId())
-                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        if (category.getIsParent()) {
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
-        }
-        Set<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toSet());
-        Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
-        if (tagIds.size() != tagCnt) {
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
-        }
-        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), category);
+        Category selectedCategory = categoryService.getCategoryById(requestDto.getCategoryId());
+        List<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toList());
+        tagService.checkTagIds(tagIds);
+        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), selectedCategory);
         return id;
     }
 }

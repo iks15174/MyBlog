@@ -23,21 +23,22 @@ public class TagService {
 
     @Transactional
     public List<TagResponseDto> getList(String name) {
-        return tagRepository.findAllByName(name).stream().map(tagObj -> new TagResponseDto((Tag) tagObj[0], (Long)tagObj[1]))
+        return tagRepository.findAllByName(name).stream()
+                .map(tagObj -> new TagResponseDto((Tag) tagObj[0], (Long) tagObj[1]))
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public Long save(TagSaveRequestDto requestDto) {
-        if(tagRepository.existsByName(requestDto.getName())){
+        if (tagRepository.existsByName(requestDto.getName())) {
             throw new CustomBasicException(ErrorCode.TAG_DUPLICATED_ERROR);
         }
         return tagRepository.save(requestDto.toEntity()).getId();
     }
 
     @Transactional
-    public Long update(Long id, TagSaveRequestDto requestDto){
-        if(requestDto.getName() == "") {
+    public Long update(Long id, TagSaveRequestDto requestDto) {
+        if (requestDto.getName() == "") {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
         Tag tag = tagRepository.findById(id).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_TAG));
@@ -48,9 +49,18 @@ public class TagService {
 
     @Transactional
     public Long delete(Long id) {
-        Tag tag = tagRepository.findByIdWithPosts(id).orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_TAG));
+        Tag tag = tagRepository.findByIdWithPosts(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_TAG));
         tagRepository.delete(tag);
         return tag.getId();
 
+    }
+
+    @Transactional
+    public void checkTagIds(List<Long> tagIds) {
+        Integer tagCnt = tagRepository.countAllByIdIn(tagIds);
+        if (tagIds.size() != tagCnt) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 }
