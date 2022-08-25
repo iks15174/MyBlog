@@ -34,4 +34,10 @@ public class PostTag extends BaseTimeEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Tag tag;
+
+    public void setPost(Posts post) {
+        if(this.posts == null){
+            this.posts = post;
+        }
+    }
 }

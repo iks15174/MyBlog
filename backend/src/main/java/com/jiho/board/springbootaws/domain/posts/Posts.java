@@ -18,9 +18,10 @@ import com.jiho.board.springbootaws.domain.BaseTimeEntity;
 import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
+import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
+import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.web.dto.posts.TagDto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -49,36 +50,64 @@ public class Posts extends BaseTimeEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy="posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostTag> tags = new ArrayList<>();
 
+    public Posts(String title, String content, Member author, Category category, List<PostTag> tags) {
+        this.setTitle(title);
+        this.setContent(content);
+        this.setAuthor(author);
+        this.setCategory(category);
+        this.addTags(tags);
+    }
+
     public void update(String title, String content, List<TagDto> tagDtos, Category category) {
-        this.title = title;
-        this.content = content;
+        this.setTitle(title);
+        this.setContent(content);
         List<PostTag> removeItem = this.tags.stream()
                     .filter(t -> !tagDtos.stream()
                                         .filter(tds -> tds.getId() == t.getId()).findFirst().isPresent())
                     .collect(Collectors.toList());
-        this.tags.removeAll(removeItem);
+        this.deleteTags(removeItem);
         List<PostTag> addItem = tagDtos.stream()
                                         .filter(tds -> !this.tags.stream()
                                                                 .filter(t -> t.getId() == tds.getId()).findFirst().isPresent())
                                         .map(tds -> tds.toEntity())
                                         .map(ten -> PostTag.builder().posts(this).tag(ten).build())
                                         .collect(Collectors.toList());
-        this.category = category;
-        this.tags.addAll(addItem);
+        this.addTags(addItem);
+        this.setCategory(category);
     }
 
-    public Posts setTags(List<PostTag> ptags) {
-        this.tags = ptags;
-        return this;
+    private void setTitle(String title){
+        if(title.isEmpty()){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.title = title;
     }
 
-    public Posts setAuthor(Member author) {
+    private void setContent(String content){
+        if(content.isEmpty()){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.content = content;
+    }
+    private void addTags(List<PostTag> ptags) {
+        ptags.forEach(pt -> {
+            pt.setPost(this);
+        });
+        this.tags.addAll(ptags);
+    }
+
+    private void deleteTags(List<PostTag> deletedTags){
+        this.tags.removeAll(deletedTags);
+    }
+
+    private void setAuthor(Member author) {
         this.author = author;
-        return this;
     }
 
-    public Posts setCategory(Category category) {
+    private void setCategory(Category category) {
+        if(category == null || category.getIsParent()){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         this.category = category;
-        return this;
     }
 }

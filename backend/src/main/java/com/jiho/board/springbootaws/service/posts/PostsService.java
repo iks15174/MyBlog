@@ -11,7 +11,6 @@ import javax.transaction.Transactional;
 import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.category.CategoryRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
-import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
@@ -19,7 +18,6 @@ import com.jiho.board.springbootaws.domain.tag.TagRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.member.MemberService;
-import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
 import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsSaveRequestDto;
@@ -27,7 +25,6 @@ import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -53,7 +50,7 @@ public class PostsService {
         if (tagIds.size() != tagCnt) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE); // 존재하지 않는 Tag일 경우
         }
-        return postsRepository.save(requestDto.toEntity().setAuthor(author).setCategory(category)).getId();
+        return postsRepository.save(requestDto.toEntity(author, category)).getId();
     }
 
     @Transactional
