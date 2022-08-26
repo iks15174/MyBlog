@@ -25,14 +25,8 @@ public class CategoryService {
 
     @Transactional
     public Long save(CategorySaveRequestDto requestDto) {
-        if (categoryRepository.existsByName(requestDto.getName())) {
-            throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
-        }
-        Category parent = null;
-        if (!requestDto.getIsParent()) {
-            parent = categoryRepository.findById(requestDto.getParentId())
-                    .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        }
+        checkCreateWithName(requestDto.getName());
+        Category parent = findParent(requestDto.getParentId(), requestDto.getIsParent());
         return categoryRepository.save(requestDto.toEntity(parent)).getId();
     }
 
@@ -40,15 +34,8 @@ public class CategoryService {
     public Long update(CategoryUpdateRequestDto requestDto, Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        Optional<Category> sameNmCt = categoryRepository.findByName(requestDto.getName());
-        if(sameNmCt.isPresent() && category.getId() != sameNmCt.get().getId()) {
-            throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
-        }
-        Category parent = null;
-        if (!requestDto.getIsParent()) {
-            parent = categoryRepository.findById(requestDto.getParentId())
-                    .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
-        }
+        checkUpdateWithName(requestDto.getName(), category);
+        Category parent = findParent(requestDto.getParentId(), requestDto.getIsParent());
         category.update(requestDto.getName(), requestDto.getIsParent(), parent);
         return id;
     }
@@ -73,5 +60,30 @@ public class CategoryService {
     public Category getCategoryById(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+    }
+
+    @Transactional
+    private void checkCreateWithName(String name) {
+        if (categoryRepository.existsByName(name)) {
+            throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
+        }
+    }
+
+    @Transactional
+    private void checkUpdateWithName(String newName, Category curCategory) {
+        Optional<Category> sameNmCt = categoryRepository.findByName(newName);
+        if(sameNmCt.isPresent() && curCategory.getId() != sameNmCt.get().getId()) {
+            throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
+        }
+    }
+
+    @Transactional
+    private Category findParent(Long parentId, Boolean isParent) {
+        Category parent = null;
+        if (!isParent) {
+            parent = categoryRepository.findById(parentId)
+                    .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        }
+        return parent;
     }
 }
