@@ -72,4 +72,11 @@ public class PostsService {
         entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), selectedCategory);
         return id;
     }
+
+    @Transactional
+    public void delete(Long id) {
+        Posts entity = postsRepository.findById(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
+        postsRepository.delete(entity);
+    }
 }
