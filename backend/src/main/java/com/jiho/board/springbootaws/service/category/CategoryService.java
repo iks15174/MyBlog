@@ -1,6 +1,7 @@
 package com.jiho.board.springbootaws.service.category;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -13,6 +14,7 @@ import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.web.dto.category.CategoryResponseDto;
 import com.jiho.board.springbootaws.web.dto.category.CategorySaveRequestDto;
+import com.jiho.board.springbootaws.web.dto.category.CategoryUpdateRequestDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +34,23 @@ public class CategoryService {
                     .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
         }
         return categoryRepository.save(requestDto.toEntity(parent)).getId();
+    }
+
+    @Transactional
+    public Long update(CategoryUpdateRequestDto requestDto, Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        Optional<Category> sameNmCt = categoryRepository.findByName(requestDto.getName());
+        if(sameNmCt.isPresent() && category.getId() != sameNmCt.get().getId()) {
+            throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
+        }
+        Category parent = null;
+        if (!requestDto.getIsParent()) {
+            parent = categoryRepository.findById(requestDto.getParentId())
+                    .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        }
+        category.update(requestDto.getName(), requestDto.getIsParent(), parent);
+        return id;
     }
 
     @Transactional

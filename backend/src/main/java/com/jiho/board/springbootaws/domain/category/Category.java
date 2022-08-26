@@ -51,4 +51,13 @@ public class Category {
         this.parentCategory = parentCategory;
     }
 
+    public void update(String name, Boolean isParent, Category parentCategory) {
+        if(this.isParent != isParent){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.name = name;
+        this.isParent = isParent;
+        this.parentCategory = parentCategory;
+    }
+
 }

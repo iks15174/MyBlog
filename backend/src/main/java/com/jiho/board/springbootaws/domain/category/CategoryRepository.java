@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Boolean existsByName(String name);
+
+    Optional<Category> findByName(String name);
     
     @Query("SELECT c, count(p) " + 
     "FROM Category c left outer join Posts p on p.category = c " + 
