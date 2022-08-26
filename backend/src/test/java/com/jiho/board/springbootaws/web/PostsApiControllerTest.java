@@ -37,6 +37,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -253,6 +254,18 @@ public class PostsApiControllerTest {
                                         .findAny().orElse(null)).isNotEqualTo(null);
                 });
                 assertThat(updatedPost.get().getCategory().getName()).isEqualTo(newChildCt.getName());
+        }
+
+        @Test
+        @WithMockCustomUser
+        public void Posts_삭제된다() throws Exception {
+                List<Posts> posts = createPostsWithTagCategory(10);
+                Integer deletePostIdx = 4;
+
+                String url = "http://localhost:" + port + "/api/v1/posts/" + posts.get(deletePostIdx).getId();
+                mvc.perform(delete(url)).andExpect(status().isOk());
+                Optional<Posts> deletedPosts = postsRepository.findById(posts.get(deletePostIdx).getId());
+                assertThat(deletedPosts.isPresent()).isFalse();
         }
 
         @Test
