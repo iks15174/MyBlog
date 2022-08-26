@@ -23,7 +23,7 @@ public class CategoryService {
 
     @Transactional
     public Long save(CategorySaveRequestDto requestDto) {
-        if (categoryRepository.existsByNameAndIsParent(requestDto.getName(), requestDto.getIsParent())) {
+        if (categoryRepository.existsByName(requestDto.getName())) {
             throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
         }
         Category parent = null;
