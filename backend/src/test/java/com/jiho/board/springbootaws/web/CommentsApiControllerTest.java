@@ -91,7 +91,8 @@ public class CommentsApiControllerTest {
         public void Comments_등록된다() throws Exception {
                 List<Category> categories = createChildParentCategory(1, 1);
                 Posts testPosts = postsRepository
-                                .save(new Posts("title", "content", testMember, categories.get(0), Collections.emptyList()));
+                                .save(new Posts("title", "content", testMember, categories.get(0),
+                                                Collections.emptyList()));
 
                 String content = "comment content";
                 Long postsId = testPosts.getId();
@@ -120,17 +121,15 @@ public class CommentsApiControllerTest {
                 String parentNm = "parentCategory";
                 String childNm = "childCategory";
                 Boolean parent = true;
-        
+
                 List<Category> childCategories = new ArrayList<Category>();
                 IntStream.rangeClosed(start, end).forEach(i -> {
-                    Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
-                    categoryRepository.save(parentCt);
-                    Category childCt = Category.builder().name(childNm + i).isParent(!parent)
-                            .parentCategory(parentCt)
-                            .build();
-                    categoryRepository.save(childCt);
-                    childCategories.add(childCt);
+                        Category parentCt = new Category(parentNm + i, parent, null);
+                        categoryRepository.save(parentCt);
+                        Category childCt = new Category(childNm + i, !parent, parentCt);
+                        categoryRepository.save(childCt);
+                        childCategories.add(childCt);
                 });
                 return childCategories;
-            }
+        }
 }

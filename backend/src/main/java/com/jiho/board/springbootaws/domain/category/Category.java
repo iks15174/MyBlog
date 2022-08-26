@@ -13,14 +13,13 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
+import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@AllArgsConstructor
-@Builder
 @ToString
 @Getter
 @NoArgsConstructor
@@ -40,8 +39,16 @@ public class Category {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category parentCategory;
 
-    @Builder.Default
     @OneToMany(mappedBy = "parentCategory", cascade = CascadeType.ALL)
     private Set<Category> subCategories = new HashSet<>();
+
+    public Category(String name, Boolean isParent, Category parentCategory) {
+        if((!isParent && parentCategory == null) || (isParent && parentCategory != null)){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+        this.name = name;
+        this.isParent = isParent;
+        this.parentCategory = parentCategory;
+    }
 
 }

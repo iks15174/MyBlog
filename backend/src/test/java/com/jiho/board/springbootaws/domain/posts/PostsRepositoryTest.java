@@ -77,11 +77,9 @@ public class PostsRepositoryTest {
 
         List<Category> childCategories = new ArrayList<Category>();
         IntStream.rangeClosed(start, end).forEach(i -> {
-            Category parentCt = Category.builder().name(parentNm + i).isParent(parent).build();
+            Category parentCt = new Category(parentNm + i, parent, null);
             categoryRepository.save(parentCt);
-            Category childCt = Category.builder().name(childNm + i).isParent(!parent)
-                    .parentCategory(parentCt)
-                    .build();
+            Category childCt = new Category(childNm + i, !parent, parentCt);
             categoryRepository.save(childCt);
             childCategories.add(childCt);
         });

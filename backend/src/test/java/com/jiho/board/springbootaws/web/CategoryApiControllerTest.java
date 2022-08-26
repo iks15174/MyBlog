@@ -139,7 +139,7 @@ public class CategoryApiControllerTest {
                 Boolean parent = true;
 
                 Category parentCt = categoryRepository
-                                .save(Category.builder().name(parentCategoryNm).isParent(parent).build());
+                                .save(new Category(parentCategoryNm, parent, null));
                 CategorySaveRequestDto requestDto = CategorySaveRequestDto.builder().name(subCategoryNm)
                                 .isParent(!parent)
                                 .parentId(parentCt.getId())
@@ -199,11 +199,10 @@ public class CategoryApiControllerTest {
                 Boolean parent = true;
                 List<Category> result = new ArrayList<>();
                 IntStream.rangeClosed(1, categoryNum).forEach(i -> {
-                        Category parentCt = Category.builder().name(baseName + i + "parent").isParent(parent).build();
+                        Category parentCt = new Category(baseName + i + "parent", parent, null);
                         categoryRepository.save(parentCt);
                         result.add(parentCt);
-                        Category childCt = Category.builder().name(baseName + i).isParent(!parent)
-                                        .parentCategory(parentCt).build();
+                        Category childCt = new Category(baseName + i, !parent, parentCt);
                         categoryRepository.save(childCt);
                         result.add(childCt);
                 });

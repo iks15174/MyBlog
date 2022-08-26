@@ -17,6 +17,6 @@ public class CategorySaveRequestDto {
     private Long parentId;
 
     public Category toEntity(Category parent) {
-        return Category.builder().name(name).isParent(isParent).parentCategory(parent).build();
+        return new Category(name, isParent, parent);
     }
 }
