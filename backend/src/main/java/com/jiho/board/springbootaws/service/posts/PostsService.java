@@ -9,6 +9,7 @@ import javax.transaction.Transactional;
 
 import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
+import com.jiho.board.springbootaws.domain.postTag.PostTagRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.domain.tag.Tag;
@@ -35,6 +36,8 @@ public class PostsService {
     private final CategoryService categoryService;
     private final TagService tagService;
     private final PostsRepository postsRepository;
+
+    private final PostTagRepository postTagRepository;
 
     @Transactional
     public Long save(PostsSaveRequestDto requestDto) {
@@ -75,8 +78,9 @@ public class PostsService {
 
     @Transactional
     public void delete(Long id) {
-        Posts entity = postsRepository.findById(id)
+        Posts entity = postsRepository.findByIdWithTags(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
-        postsRepository.delete(entity);
+        postTagRepository.deleteAllInBatch(entity.getTags());
+        postsRepository.deleteInQuery(entity.getId());
     }
 }
