@@ -25,10 +25,12 @@ import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.util.security.WithMockCustomUser;
 import com.jiho.board.springbootaws.web.dto.category.CategorySaveRequestDto;
+import com.jiho.board.springbootaws.web.dto.category.CategoryUpdateRequestDto;
 import com.jiho.board.springbootaws.web.dto.member.MemberSaveRequestDto;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -99,7 +101,8 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isCreated());
 
                 Category category = categoryRepository.findAll().get(0);
                 assertThat(category.getName()).isEqualTo(categoryName);
@@ -119,7 +122,8 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isCreated());
 
                 Category category = categoryRepository.findAll().get(0);
                 assertThat(category.getName()).isEqualTo(categoryName);
@@ -149,12 +153,65 @@ public class CategoryApiControllerTest {
 
                 mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON)
-                                .content(new ObjectMapper().writeValueAsString(requestDto))).andExpect(status().isCreated());
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isCreated());
 
                 Optional<Category> childCt = categoryRepository.findByIsParent(false);
                 assertThat(childCt.isPresent()).isTrue();
                 assertThat(childCt.get().getName()).isEqualTo(subCategoryNm);
                 assertThat(childCt.get().getParentCategory().getId()).isEqualTo(parentCt.getId());
+        }
+
+        @Test
+        @WithMockCustomUser(role = MemberRole.ADMIN)
+        public void Category를_수정한다() throws Exception {
+                Category childCt = createCategories(1).get(1);
+                String updatedNm = "updateCt";
+
+                String url = "http://localhost:" + port + "/api/v1/category/" + childCt.getId();
+                CategoryUpdateRequestDto requestDto = CategoryUpdateRequestDto.builder().name(updatedNm).isParent(false)
+                                .parentId(childCt.getParentCategory().getId()).build();
+
+                mvc.perform(put(url).contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isOk());
+                Optional<Category> updatedCt = categoryRepository.findById(childCt.getId());
+                assertThat(updatedCt.get().getName()).isEqualTo(updatedNm);
+        }
+
+        @Test
+        @WithMockCustomUser(role = MemberRole.ADMIN)
+        public void Category를_child에서_parent로_변경할수없다() throws Exception {
+                Category childCt = createCategories(1).get(1);
+
+                String url = "http://localhost:" + port + "/api/v1/category/" + childCt.getId();
+                CategoryUpdateRequestDto requestDto = CategoryUpdateRequestDto.builder().name(childCt.getName())
+                                .isParent(true)
+                                .parentId(childCt.getParentCategory().getId()).build();
+
+                mvc.perform(put(url).contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @WithMockCustomUser(role = MemberRole.ADMIN)
+        public void Category를_중복된_이름으로_변경할수없다() throws Exception {
+                List<Category> categories = createCategories(2);
+                Category firstChildCt = categories.get(1);
+                Category secChildCt = categories.get(3);
+
+                String url = "http://localhost:" + port + "/api/v1/category/" + firstChildCt.getId();
+                CategoryUpdateRequestDto requestDto = CategoryUpdateRequestDto.builder().name(secChildCt.getName())
+                                .isParent(true)
+                                .parentId(firstChildCt.getParentCategory().getId()).build();
+
+                mvc.perform(put(url).contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                                .andExpect(status().isBadRequest());
         }
 
         @Test
@@ -169,7 +226,7 @@ public class CategoryApiControllerTest {
                 ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
                 for (int i = 0; i < categories.size(); i++) {
                         int postCnt = 0;
-                        if(!categories.get(i).getIsParent()){
+                        if (!categories.get(i).getIsParent()) {
                                 postCnt = i + 1;
                                 continue;
                         }
@@ -184,12 +241,15 @@ public class CategoryApiControllerTest {
         @Test
         public void 자식_Category만_가져온다() throws Exception {
                 List<Category> categories = createCategories(5);
-                List<Category> subCategory = categories.stream().filter(c -> !c.getIsParent()).collect(Collectors.toList());
+                List<Category> subCategory = categories.stream().filter(c -> !c.getIsParent())
+                                .collect(Collectors.toList());
                 String url = "http://localhost:" + port + "/api/v1/subCategory";
                 ResultActions actions = mvc.perform(get(url)).andExpect(status().isOk());
-                for(int i = 0; i < subCategory.size(); i++) {
-                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].isParent").value(false));
-                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name").value(subCategory.get(i).getName()));
+                for (int i = 0; i < subCategory.size(); i++) {
+                        actions = actions.andExpect(
+                                        MockMvcResultMatchers.jsonPath("$.[" + i + "].isParent").value(false));
+                        actions = actions.andExpect(MockMvcResultMatchers.jsonPath("$.[" + i + "].name")
+                                        .value(subCategory.get(i).getName()));
                 }
 
         }
@@ -214,8 +274,9 @@ public class CategoryApiControllerTest {
                 String baseContent = "content";
                 List<Posts> result = new ArrayList<>();
                 for (int i = 0; i < postsNum; i++) {
-                        result.add(new Posts(baseTitle + i, baseContent + i, testMember, category, Collections.emptyList()));
-                                        
+                        result.add(new Posts(baseTitle + i, baseContent + i, testMember, category,
+                                        Collections.emptyList()));
+
                 }
                 postsRepository.saveAll(result);
                 return result;
