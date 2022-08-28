@@ -52,6 +52,9 @@ public class Category {
     }
 
     public void update(String name, Boolean isParent, Category parentCategory) {
+        if((!isParent && parentCategory == null) || (isParent && parentCategory != null)){
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
         if(this.isParent != isParent){
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
