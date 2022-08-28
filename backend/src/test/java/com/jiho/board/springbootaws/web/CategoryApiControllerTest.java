@@ -31,6 +31,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -213,6 +214,22 @@ public class CategoryApiControllerTest {
                                 .content(new ObjectMapper().writeValueAsString(requestDto)))
                                 .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @WithMockCustomUser(role = MemberRole.ADMIN)
+        public void Category를_삭제한다() throws Exception {
+                List<Category> categories = createCategories(1);
+                Category childCt = categories.get(1);
+                Category parentCt = categories.get(0);
+
+                String url = "http://localhost:" + port + "/api/v1/category/" + parentCt.getId();
+
+                mvc.perform(delete(url)).andExpect(status().isOk());
+
+                assertThat(categoryRepository.findById(childCt.getId()).isPresent()).isFalse();
+                assertThat(categoryRepository.findById(parentCt.getId()).isPresent()).isFalse();
+        }
+
 
         @Test
         public void Category를_PostCnt와_함께_가져온다() throws Exception {
