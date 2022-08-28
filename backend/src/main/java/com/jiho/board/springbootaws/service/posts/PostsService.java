@@ -83,4 +83,10 @@ public class PostsService {
         postTagRepository.deleteAllInBatch(entity.getTags());
         postsRepository.deleteInQuery(entity.getId());
     }
+
+    @Transactional
+    public Posts getPostById(Long id) {
+        return postsRepository.findById(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
+    }
 }
