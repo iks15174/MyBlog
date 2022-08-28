@@ -60,13 +60,12 @@ public class PostsRepositoryTest {
         String content = "테스트 본문";
         List<Category>  categories = createChildParentCategory(1, 1);
 
-        postsRepository.save(new Posts(title, content, testMember, categories.get(0), Collections.emptyList()));
+        Posts createdPost = postsRepository.save(new Posts(title, content, testMember, categories.get(0), Collections.emptyList()));
 
-        List<Posts> postsList = postsRepository.findAll();
+        Posts findedPost = postsRepository.findByIdWithTagsAndContent(createdPost.getId()).get();
 
-        Posts posts = postsList.get(0);
-        assertThat(posts.getTitle()).isEqualTo(title);
-        assertThat(posts.getContent()).isEqualTo(content);
+        assertThat(findedPost.getTitle()).isEqualTo(title);
+        assertThat(findedPost.getContent().getFullContent()).isEqualTo(content);
 
     }
 

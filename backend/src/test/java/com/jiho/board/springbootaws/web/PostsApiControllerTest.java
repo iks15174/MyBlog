@@ -111,7 +111,7 @@ public class PostsApiControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(post.get(9).getId()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(post.get(9).getTitle()))
-                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(9).getContent()))
+                                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value(post.get(9).getContent().getFullContent()))
                                 .andExpect(MockMvcResultMatchers.jsonPath("$.tags.[*].name", Matchers
                                                 .containsInAnyOrder(post.get(9).getTags().stream()
                                                                 .map(t -> t.getTag().getName()).toArray())));
@@ -152,7 +152,7 @@ public class PostsApiControllerTest {
         public void PostList_TAG_CATEGORY와_함꼐_검색한다() throws Exception {
                 List<Posts> posts = createPostsWithTagCategory(20);
                 List<Posts> filteredPost = posts.stream()
-                                .filter(p -> p.getTitle().contains("2") || p.getContent().contains("2"))
+                                .filter(p -> p.getTitle().contains("2") || p.getContent().getFullContent().contains("2"))
                                 .filter(p -> p.getCategory().getId() == 4 || p.getCategory().getId() == 24)
                                 .collect(Collectors.toList());
                 String url = "http://localhost:" + port + "/api/v1/posts"
@@ -175,12 +175,14 @@ public class PostsApiControllerTest {
         public void Posts_등록된다() throws Exception {
                 String title = "title";
                 String content = "content";
+                String contentType = "text";
                 List<Tag> tags = createTags(1, 10);
                 Category category = createChildParentCategory(1, 1).get(0);
 
                 PostsSaveRequestDto requestDto = PostsSaveRequestDto.builder()
                                 .title(title)
                                 .content(content)
+                                .contentType(contentType)
                                 .categoryId(category.getId())
                                 .tagDto(tags.stream().map(e -> new TagDto(e)).collect(Collectors.toList()))
                                 .build();
@@ -196,11 +198,12 @@ public class PostsApiControllerTest {
 
                 Long postId = Long.parseLong(result.getResponse().getContentAsString());
 
-                Optional<Posts> createdPost = postsRepository.findByIdWithTags(postId);
+                Optional<Posts> createdPost = postsRepository.findByIdWithTagsAndContent(postId);
                 assertThat(createdPost.isPresent()).isTrue();
                 List<PostTag> allPostTag = postTagRepository.findAllByPostsId(createdPost.get().getId());
                 assertThat(createdPost.get().getTitle()).isEqualTo(title);
-                assertThat(createdPost.get().getContent()).isEqualTo(content);
+                assertThat(createdPost.get().getContent().getFullContent()).isEqualTo(content);
+                assertThat(createdPost.get().getContent().getContentType()).isEqualTo(contentType);
                 assertThat(allPostTag.size()).isEqualTo(10);
                 allPostTag.forEach(pt -> {
                         assertThat(tags.stream().filter(t -> pt.getTag().getName().equals(t.getName()))
@@ -226,6 +229,7 @@ public class PostsApiControllerTest {
                 Long updateId = savedPosts.getId();
                 String updatedTitle = "title-update";
                 String updatedContent = "content-update";
+                String updatedContentType = "mark-down";
                 oldTag.remove(0);
                 List<Tag> newTag = createTags(3, 4);
                 newTag.addAll(oldTag);
@@ -233,6 +237,7 @@ public class PostsApiControllerTest {
                 PostsUpdateRequestDto requestDto = PostsUpdateRequestDto.builder()
                                 .title(updatedTitle)
                                 .content(updatedContent)
+                                .contentType(updatedContentType)
                                 .categoryId(newChildCt.getId())
                                 .tags(newTag.stream().map(nt -> new TagDto(nt)).collect(Collectors.toList()))
                                 .build();
@@ -245,10 +250,11 @@ public class PostsApiControllerTest {
                                 .content(new ObjectMapper().writeValueAsString(requestDto)))
                                 .andExpect(status().isOk());
 
-                Optional<Posts> updatedPost = postsRepository.findByIdWithTags(savedPosts.getId());
+                Optional<Posts> updatedPost = postsRepository.findByIdWithTagsAndContent(savedPosts.getId());
                 assertThat(updatedPost.isPresent()).isEqualTo(true);
                 assertThat(updatedPost.get().getTitle()).isEqualTo(updatedTitle);
-                assertThat(updatedPost.get().getContent()).isEqualTo(updatedContent);
+                assertThat(updatedPost.get().getContent().getFullContent()).isEqualTo(updatedContent);
+                assertThat(updatedPost.get().getContent().getContentType()).isEqualTo(updatedContentType);
                 List<PostTag> allPostTag = postTagRepository.findAllByPostsId(updatedPost.get().getId());
                 allPostTag.forEach(pt -> {
                         assertThat(newTag.stream().filter(t -> pt.getTag().getName().equals(t.getName()))

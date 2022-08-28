@@ -106,9 +106,9 @@ public class SearchPostRepositoryImplTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
-        Page<List<Object>> postList = postsRepository.searchPost("", "", new ArrayList<Long>(), pageable);
-        for (List<Object> ptd : postList.getContent()) {
-            assertThat(((List<Tag>) ptd.get(1)).size()).isEqualTo(tagPerPost.get(((Posts) ptd.get(0)).getId()));
+        Page<Posts> postList = postsRepository.searchPost("", "", new ArrayList<Long>(), pageable);
+        for (Posts ptd : postList.getContent()) {
+            assertThat(ptd.getTags().size()).isEqualTo(tagPerPost.get(ptd.getId()));
         }
         assertThat(postList.getContent().size()).isEqualTo(10);
     }
