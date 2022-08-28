@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
-import com.jiho.board.springbootaws.domain.posts.Content;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 
 import lombok.AllArgsConstructor;
