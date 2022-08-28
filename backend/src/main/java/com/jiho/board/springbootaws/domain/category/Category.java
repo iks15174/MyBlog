@@ -25,7 +25,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @Entity
 public class Category {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,8 +43,10 @@ public class Category {
     private Set<Category> subCategories = new HashSet<>();
 
     public Category(String name, Boolean isParent, Category parentCategory) {
-        if((!isParent && parentCategory == null) || (isParent && parentCategory != null)){
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        if (isParent) {
+            parentNotHaveParent(parentCategory);
+        } else {
+            childHaveParent(parentCategory);
         }
         this.name = name;
         this.isParent = isParent;
@@ -52,15 +54,33 @@ public class Category {
     }
 
     public void update(String name, Boolean isParent, Category parentCategory) {
-        if((!isParent && parentCategory == null) || (isParent && parentCategory != null)){
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        if (isParent) {
+            parentNotHaveParent(parentCategory);
+        } else {
+            childHaveParent(parentCategory);
         }
-        if(this.isParent != isParent){
-            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
-        }
+        cannotUpdateIsParent(isParent);
         this.name = name;
         this.isParent = isParent;
         this.parentCategory = parentCategory;
+    }
+
+    private void parentNotHaveParent(Category parentCt) {
+        if (parentCt != null) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+
+    private void childHaveParent(Category parentCt) {
+        if (parentCt == null || !parentCt.getIsParent()) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+    }
+
+    private void cannotUpdateIsParent(Boolean isParent) {
+        if (this.isParent != isParent) {
+            throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
+        }
     }
 
 }
