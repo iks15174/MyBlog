@@ -59,20 +59,21 @@ public class PostsService {
 
     @Transactional
     public PostsResponseDto findById(Long id) {
-        Posts entity = postsRepository.findByIdWithTags(id)
+        Posts entity = postsRepository.findByIdWithTagsAndContent(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
         return new PostsResponseDto(entity);
     }
 
     @Transactional
     public Long update(Long id, PostsUpdateRequestDto requestDto) {
-        Posts entity = postsRepository.findByIdWithTags(id)
+        Posts entity = postsRepository.findByIdWithTagsAndContent(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
         memberService.checkCurUserIsAuthor(entity.getAuthor());
         Category selectedCategory = categoryService.getCategoryById(requestDto.getCategoryId());
         List<Long> tagIds = requestDto.getTags().stream().map(t -> t.getId()).collect(Collectors.toList());
         tagService.checkTagIds(tagIds);
-        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getTags(), selectedCategory);
+        entity.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getContentType(), requestDto.getTags(),
+                selectedCategory);
         return id;
     }
 

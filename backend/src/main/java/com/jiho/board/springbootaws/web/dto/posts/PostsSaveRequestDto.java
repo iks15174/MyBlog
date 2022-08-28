@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import com.jiho.board.springbootaws.domain.category.Category;
 import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTag;
+import com.jiho.board.springbootaws.domain.posts.Content;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 
 import lombok.AllArgsConstructor;
@@ -20,12 +21,13 @@ import lombok.NoArgsConstructor;
 public class PostsSaveRequestDto {
     private String title;
     private String content;
+    private String contentType;
     private Long categoryId;
     private List<TagDto> tagDto;
 
     public Posts toEntity(Member author, Category category) {
         List<PostTag> postTags = toPostTagEntity();
-        Posts post = new Posts(this.title, this.content, author, category, postTags);
+        Posts post = new Posts(this.title, this.content, this.contentType, author, category, postTags);
         return post;
     }
 

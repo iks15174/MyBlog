@@ -20,7 +20,7 @@ public class PostsTagResultDto {
     public PostsTagResultDto(Posts entity, List<Tag> tagsEntity) {
         this.id = entity.getId();
         this.title = entity.getTitle();
-        this.content = entity.getContent();
+        this.content = entity.getContent().getFullContent();
         this.author = entity.getAuthor().getName();
         this.category = entity.getCategory() != null ? entity.getCategory().getName() : "";
         for(Tag t:tagsEntity){

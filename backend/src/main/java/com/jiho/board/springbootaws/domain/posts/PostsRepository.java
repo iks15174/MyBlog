@@ -22,11 +22,19 @@ public interface PostsRepository extends JpaRepository<Posts, Long>, SearchPostR
     void deleteInQuery(@Param("id") Long id);
 
     @Query("select distinct p" +
-    " from Posts p left outer join fetch p.tags t " +
-    " left outer join fetch t.tag "+
-    " left outer join fetch p.category "+
-    " where p.id = :id")
+            " from Posts p left outer join fetch p.tags t " +
+            " left outer join fetch t.tag " +
+            " left outer join fetch p.category " +
+            " where p.id = :id")
     Optional<Posts> findByIdWithTags(@Param("id") Long id);
+
+    @Query("select distinct p" +
+            " from Posts p left outer join fetch p.tags t " +
+            " left outer join fetch t.tag tt " +
+            " left outer join fetch p.category c " +
+            " left outer join fetch p.content ct " +
+            " where p.id = :id")
+    Optional<Posts> findByIdWithTagsAndContent(@Param("id") Long id);
 
     @Query("SELECT p FROM Posts p WHERE p.title LIKE %:title% OR p.content LIKE %:content%")
     Page<Posts> findAllSearch(@Param("title") String title, @Param("content") String content, Pageable pageable);

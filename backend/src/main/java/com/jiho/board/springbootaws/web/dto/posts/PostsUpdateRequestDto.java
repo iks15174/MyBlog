@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class PostsUpdateRequestDto {
     private String title;
     private String content;
+    private String contentType;
     private Long categoryId;
     private List<TagDto> tags;
 }

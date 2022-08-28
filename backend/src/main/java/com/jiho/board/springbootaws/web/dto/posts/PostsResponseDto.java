@@ -13,13 +13,15 @@ public class PostsResponseDto {
     private Long id;
     private String title;
     private String content;
+    private String contentType;
     private String author;
     private List<TagDto> tags = new ArrayList<TagDto>();
 
     public PostsResponseDto(Posts entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();
-        this.content = entity.getContent();
+        this.content = entity.getContent().getFullContent();
+        this.contentType = entity.getContent().getContentType();
         this.author = entity.getAuthor().getName();
         for(PostTag postTag:entity.getTags()){
             this.tags.add((new TagDto(postTag.getTag())));

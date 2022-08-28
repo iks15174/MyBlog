@@ -11,8 +11,10 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.jiho.board.springbootaws.domain.BaseTimeEntity;
 import com.jiho.board.springbootaws.domain.category.Category;
@@ -38,8 +40,9 @@ public class Posts extends BaseTimeEntity {
     @Column(length = 500, nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String content;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "content_id", referencedColumnName = "id")
+    private Content content;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member author;
@@ -47,48 +50,50 @@ public class Posts extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy="posts", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostTag> tags = new ArrayList<>();
 
-    public Posts(String title, String content, Member author, Category category, List<PostTag> tags) {
+    public Posts(String title, String content, String contentType, Member author, Category category,
+            List<PostTag> tags) {
         this.setTitle(title);
-        this.setContent(content);
+        this.setContent(content, contentType);
         this.setAuthor(author);
         this.setCategory(category);
         this.addTags(tags);
     }
 
-    public void update(String title, String content, List<TagDto> tagDtos, Category category) {
+    public void update(String title, String content, String contentType, List<TagDto> tagDtos, Category category) {
         this.setTitle(title);
-        this.setContent(content);
+        this.setContent(content, contentType);
         List<PostTag> removeItem = this.tags.stream()
-                    .filter(t -> !tagDtos.stream()
-                                        .filter(tds -> tds.getId() == t.getId()).findFirst().isPresent())
-                    .collect(Collectors.toList());
+                .filter(t -> !tagDtos.stream()
+                        .filter(tds -> tds.getId() == t.getId()).findFirst().isPresent())
+                .collect(Collectors.toList());
         this.deleteTags(removeItem);
         List<PostTag> addItem = tagDtos.stream()
-                                        .filter(tds -> !this.tags.stream()
-                                                                .filter(t -> t.getId() == tds.getId()).findFirst().isPresent())
-                                        .map(tds -> tds.toEntity())
-                                        .map(ten -> PostTag.builder().posts(this).tag(ten).build())
-                                        .collect(Collectors.toList());
+                .filter(tds -> !this.tags.stream()
+                        .filter(t -> t.getId() == tds.getId()).findFirst().isPresent())
+                .map(tds -> tds.toEntity())
+                .map(ten -> PostTag.builder().posts(this).tag(ten).build())
+                .collect(Collectors.toList());
         this.addTags(addItem);
         this.setCategory(category);
     }
 
-    private void setTitle(String title){
-        if(title.isEmpty()){
+    private void setTitle(String title) {
+        if (title.isEmpty()) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
         this.title = title;
     }
 
-    private void setContent(String content){
-        if(content.isEmpty()){
+    private void setContent(String content, String contentType) {
+        if (content.isEmpty()) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
-        this.content = content;
+        this.content = new Content(content, contentType);
     }
+
     private void addTags(List<PostTag> ptags) {
         ptags.forEach(pt -> {
             pt.setPost(this);
@@ -96,7 +101,7 @@ public class Posts extends BaseTimeEntity {
         this.tags.addAll(ptags);
     }
 
-    private void deleteTags(List<PostTag> deletedTags){
+    private void deleteTags(List<PostTag> deletedTags) {
         this.tags.removeAll(deletedTags);
     }
 
@@ -105,7 +110,7 @@ public class Posts extends BaseTimeEntity {
     }
 
     private void setCategory(Category category) {
-        if(category == null || category.getIsParent()){
+        if (category == null || category.getIsParent()) {
             throw new CustomBasicException(ErrorCode.INVALID_INPUT_VALUE);
         }
         this.category = category;
