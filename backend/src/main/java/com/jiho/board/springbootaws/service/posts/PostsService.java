@@ -12,7 +12,6 @@ import com.jiho.board.springbootaws.domain.member.Member;
 import com.jiho.board.springbootaws.domain.postTag.PostTagRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.PostsRepository;
-import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.category.CategoryService;
@@ -49,11 +48,10 @@ public class PostsService {
     }
 
     @Transactional
-    public PageResultDto<PostsTagResultDto, List<Object>> getList(String type, String keyword, ArrayList<Long> category,
+    public PageResultDto<PostsTagResultDto, Posts> getList(String type, String keyword, ArrayList<Long> category,
             Pageable pageable) {
-        Function<List<Object>, PostsTagResultDto> fn = (result -> new PostsTagResultDto((Posts) result.get(0),
-                (List<Tag>) result.get(1)));
-        return new PageResultDto<PostsTagResultDto, List<Object>>(
+        Function<Posts, PostsTagResultDto> fn = (result -> new PostsTagResultDto(result));
+        return new PageResultDto<PostsTagResultDto, Posts>(
                 postsRepository.searchPost(type, keyword, category, pageable), fn);
     }
 

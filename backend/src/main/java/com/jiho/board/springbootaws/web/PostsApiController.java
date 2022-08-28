@@ -1,5 +1,6 @@
 package com.jiho.board.springbootaws.web;
 
+import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.service.posts.PostsService;
 import com.jiho.board.springbootaws.web.dto.common.PageResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsResponseDto;
@@ -8,7 +9,6 @@ import com.jiho.board.springbootaws.web.dto.posts.PostsTagResultDto;
 import com.jiho.board.springbootaws.web.dto.posts.PostsUpdateRequestDto;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -38,7 +38,7 @@ public class PostsApiController {
     }
 
     @GetMapping("/api/v1/posts")
-    public ResponseEntity<PageResultDto<PostsTagResultDto, List<Object>>> getList(
+    public ResponseEntity<PageResultDto<PostsTagResultDto, Posts>> getList(
             @RequestParam(value = "type", required = false, defaultValue = "") String type,
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(value = "category", required = false, defaultValue = "") ArrayList<Long> categoryIds,

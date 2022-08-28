@@ -1,24 +1,19 @@
 package com.jiho.board.springbootaws.domain.posts.search;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 
+import com.jiho.board.springbootaws.domain.postTag.PostTag;
 import com.jiho.board.springbootaws.domain.postTag.QPostTag;
 import com.jiho.board.springbootaws.domain.posts.Posts;
 import com.jiho.board.springbootaws.domain.posts.QPosts;
 import com.jiho.board.springbootaws.domain.tag.QTag;
-import com.jiho.board.springbootaws.domain.tag.Tag;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.PathBuilder;
@@ -31,7 +26,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
     }
 
     @Override
-    public PageImpl<List<Object>> searchPost(String type, String keyword, ArrayList<Long> categoryIds,
+    public PageImpl<Posts> searchPost(String type, String keyword, ArrayList<Long> categoryIds,
             Pageable pageable) {
         QPosts posts = QPosts.posts;
         QPostTag postTag = QPostTag.postTag;
@@ -39,6 +34,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
 
         JPQLQuery<Posts> jpqlQueryPost = from(posts);
         jpqlQueryPost.leftJoin(posts.category).fetchJoin();
+        jpqlQueryPost.leftJoin(posts.content);
 
         BooleanBuilder totalBuilder = new BooleanBuilder();
         BooleanBuilder keywBuilder = makeKeywordBuilder(type, keyword, posts);
@@ -63,22 +59,21 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
         JPQLQuery<Posts> jpqlQueryPostTag = from(posts);
         jpqlQueryPostTag.join(posts.author).fetchJoin();
         jpqlQueryPostTag.leftJoin(posts.category).fetchJoin();
-        jpqlQueryPostTag.leftJoin(postTag).on(postTag.posts.eq(posts));
-        jpqlQueryPostTag.leftJoin(tag).on(postTag.tag.eq(tag));
+        jpqlQueryPostTag.leftJoin(posts.tags, postTag).fetchJoin();
+        jpqlQueryPostTag.join(postTag.tag, tag).fetchJoin();
         BooleanBuilder inPostList = new BooleanBuilder();
         inPostList.or(posts.id.eq((long) -1));
         for (Posts p : postList) {
             inPostList.or(posts.id.eq(p.getId()));
         }
-        JPQLQuery<Tuple> postTagResult = jpqlQueryPostTag.select(posts, tag);
+        JPQLQuery<Posts> postTagResult = jpqlQueryPostTag.select(posts).distinct();
         postTagResult.where(inPostList);
-        Map<Posts, List<Tag>> postTagMap = postTagResult.transform(GroupBy.groupBy(posts).as(GroupBy.list(tag)));
-        List<List<Object>> postTagList = postTagMap.entrySet().stream().map(e -> Arrays.asList(e.getKey(), e.getValue())).collect(Collectors.toList());
+        List<Posts> postTagList = postTagResult.fetch();
 
-        // printState(postList, postTagMap);
+        // printState(postList, postTagList);
 
-        long count = postResult.fetchCount();
-        return new PageImpl<List<Object>>(
+        long count = postList.size();
+        return new PageImpl<Posts>(
                 postTagList,
                 pageable,
                 count);
@@ -94,7 +89,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
                         conditionBuilder.or(posts.title.contains(keyword));
                         break;
                     case "c":
-                        conditionBuilder.or(posts.content.contains(keyword));
+                        conditionBuilder.or(posts.content.fullContent.contains(keyword));
                         break;
                 }
             }
@@ -110,17 +105,24 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
         return categoryBuilder;
     }
 
-    private void printState(List<Posts> postList, Map<Posts, List<Tag>> postTagMap) {
+    private void printState(List<Posts> postList, List<Posts> postTag) {
         postList.forEach(p -> {
-            System.out.println(p);
+            System.out.println(p.getTitle());
         });
-        postTagMap.entrySet().stream().forEach(e -> {
-            System.out.println(e.getKey().getTitle());
-            System.out.println(e.getKey().getCategory().getName());
-            for (Tag t : e.getValue()) {
-                System.out.println(t);
+
+        postTag.stream().forEach(pt -> {
+            System.out.println(pt.getTitle());
+            for(PostTag t : pt.getTags()) {
+                System.out.println(t.getTag().getName());
             }
         });
+        // postTagMap.entrySet().stream().forEach(e -> {
+        //     System.out.println(e.getKey().getTitle());
+        //     System.out.println(e.getKey().getCategory().getName());
+        //     for (Tag t : e.getValue()) {
+        //         System.out.println(t);
+        //     }
+        // });
     }
 
     private BooleanBuilder tagBuilder(ArrayList<Long> tagId, QPosts posts) {

@@ -62,6 +62,10 @@ public class Posts extends BaseTimeEntity {
         this.addTags(tags);
     }
 
+    public Posts(String title, String content, Member author, Category category , List<PostTag> tags) {
+        this(title, content, "text", author, category, tags);
+    } 
+
     public void update(String title, String content, String contentType, List<TagDto> tagDtos, Category category) {
         this.setTitle(title);
         this.setContent(content, contentType);
