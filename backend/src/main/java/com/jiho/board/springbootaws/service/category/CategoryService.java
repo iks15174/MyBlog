@@ -41,6 +41,16 @@ public class CategoryService {
     }
 
     @Transactional
+    public void delete(Long id) {
+        Category category = categoryRepository.findAllByIdWithSubCt(id)
+                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
+        if (category.getIsParent()) {
+            categoryRepository.deleteAllInBatch(category.getSubCategories());
+        }
+        categoryRepository.deleteInQuery(category.getId());
+    }
+
+    @Transactional
     public List<CategoryResponseDto> getList() {
         List<Object[]> entities = categoryRepository.findAllWithPostCnt();
         return entities.stream().map(entity -> {
@@ -72,7 +82,7 @@ public class CategoryService {
     @Transactional
     private void checkUpdateWithName(String newName, Category curCategory) {
         Optional<Category> sameNmCt = categoryRepository.findByName(newName);
-        if(sameNmCt.isPresent() && curCategory.getId() != sameNmCt.get().getId()) {
+        if (sameNmCt.isPresent() && curCategory.getId() != sameNmCt.get().getId()) {
             throw new CustomBasicException(ErrorCode.CATEGORY_DUPLICATED_ERROR);
         }
     }
