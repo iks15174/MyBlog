@@ -2,6 +2,7 @@ package com.jiho.board.springbootaws.domain.comments;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,7 +34,7 @@ public class Comments extends BaseTimeEntity {
     @JoinColumn(name = "memberId")
     private Member author;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postId")
     private Posts posts;
 

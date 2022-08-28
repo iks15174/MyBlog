@@ -5,20 +5,17 @@ import javax.transaction.Transactional;
 import com.jiho.board.springbootaws.domain.comments.Comments;
 import com.jiho.board.springbootaws.domain.comments.CommentsRepository;
 import com.jiho.board.springbootaws.domain.member.Member;
-import com.jiho.board.springbootaws.domain.member.MemberRepository;
 import com.jiho.board.springbootaws.domain.posts.Posts;
-import com.jiho.board.springbootaws.domain.posts.PostsRepository;
 import com.jiho.board.springbootaws.exception.exceptions.CustomBasicException;
 import com.jiho.board.springbootaws.exception.exceptions.ErrorCode;
 import com.jiho.board.springbootaws.service.member.MemberService;
-import com.jiho.board.springbootaws.service.member.dto.AuthMemberDto;
+import com.jiho.board.springbootaws.service.posts.PostsService;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsListResponseDto;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsResponseDto;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsSaveRequestDto;
 import com.jiho.board.springbootaws.web.dto.comments.CommentsUpdateRequestDto;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -28,20 +25,12 @@ import lombok.RequiredArgsConstructor;
 public class CommentsService {
         private final MemberService memberService;
         private final CommentsRepository commentsRepository;
-        private final PostsRepository postsRepository;
-        private final MemberRepository memberRepository;
+        private final PostsService postsService;
 
         @Transactional
         public Long save(CommentsSaveRequestDto requestDto) {
-                AuthMemberDto memberDto = (AuthMemberDto) SecurityContextHolder
-                                .getContext().getAuthentication().getPrincipal();
-                Member author = memberRepository
-                                .findByEmail(memberDto.getUsername())
-                                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_USER));
-
-                Long postsId = requestDto.getPostsId();
-                Posts posts = postsRepository.findById(postsId)
-                                .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEIXIST_POST));
+                Member author = memberService.getCurLoginedUser();
+                Posts posts = postsService.getPostById(requestDto.getPostsId());
                 return commentsRepository.save(requestDto.toEntity(posts, author)).getId();
         }
 
