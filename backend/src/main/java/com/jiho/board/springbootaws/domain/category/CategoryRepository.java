@@ -15,9 +15,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByName(String name);
 
     @Query("SELECT distinct c " +
-            "FROM Category c left outer join fetch c.subCategories sc" +
-            "WHERE c.id := id")
-    Optional<Category> findAllByIdWithSubCt(@Param("id") Long id);
+            "FROM Category c left outer join fetch c.subCategories sc " +
+            "WHERE c.id = :id")
+    Optional<Category> findByIdWithSubCt(@Param("id") Long id);
 
     @Modifying(clearAutomatically = true)
     @Query("delete from Category c where c.id = :id")

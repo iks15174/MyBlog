@@ -42,7 +42,7 @@ public class CategoryService {
 
     @Transactional
     public void delete(Long id) {
-        Category category = categoryRepository.findAllByIdWithSubCt(id)
+        Category category = categoryRepository.findByIdWithSubCt(id)
                 .orElseThrow(() -> new CustomBasicException(ErrorCode.UNEXIST_CATEGORY_ERROR));
         if (category.getIsParent()) {
             categoryRepository.deleteAllInBatch(category.getSubCategories());
