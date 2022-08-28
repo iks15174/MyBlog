@@ -72,7 +72,7 @@ public class SearchPostRepositoryImpl extends QuerydslRepositorySupport implemen
 
         // printState(postList, postTagList);
 
-        long count = postList.size();
+        long count = postResult.fetchCount();
         return new PageImpl<Posts>(
                 postTagList,
                 pageable,
