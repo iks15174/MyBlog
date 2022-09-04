@@ -3,7 +3,7 @@ from django.db import models
 
 # Create your models here.
 class Posts(models.Model):
-    post_id = models.BigIntegerField()
+    post_id = models.BigIntegerField(unique=True)
     content = models.TextField(null=False)
     contentType = models.CharField(max_length=100, default="text")
 
@@ -14,6 +14,7 @@ class Words(models.Model):
 class WordsPosts(models.Model):
     post = models.ForeignKey(Posts, on_delete=models.CASCADE)
     word = models.ForeignKey(Words, on_delete=models.CASCADE)
+    real_post_id = models.BigIntegerField(unique=True)
     appear_start = models.IntegerField(null=False)
     appear_end = models.IntegerField(null=False)
     
