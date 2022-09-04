@@ -12,7 +12,7 @@ echo "Move to frontend directory"
 cd frontend
 
 echo "Build frontend file"
-./npm run build
+npm run build
 cd ..
 
 # 설명 추가할 것
