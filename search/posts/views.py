@@ -2,9 +2,11 @@ from unicodedata import name
 from django.views.decorators.http import require_http_methods
 from konlpy.tag import Okt
 from models import Words, WordsPosts
+from util.back_application import dbconnector
 import nltk
 import json
 import re
+
 
 
 # Create your views here.
@@ -26,15 +28,18 @@ def process_message(request):
 
 
 def get_back_db_connection():
-    pass
+    con = dbconnector()
+    con.connect()
+    return con
 
 
-def get_post_from_back_db(post_id):
-    pass
+def get_post_from_back_db(con, post_id):
+    return con.get_post_by_id(post_id)
 
 
 def save_content(post_id):
-    post = get_post_from_back_db(post_id)
+    con = get_back_db_connection()
+    post = get_post_from_back_db(con, post_id)
     content = post["content"]
     ko_words = get_ko_noun(content)
     en_words = get_en_noun(content)
