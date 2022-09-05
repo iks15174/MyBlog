@@ -1,5 +1,30 @@
 version: '3'
 services:
+
+  zookeepr:
+    container_name: local-zookeeper
+    image: wurstmeister/zookeeper:3.4.6
+    ports:
+      - '2181:2181'
+    networks:
+      - kafka_consumer
+  
+  kafka:
+    container_name: local-kafka
+    image: wurstmeister/kafka:2.12-2.3.0
+    ports:
+      - '9092:9092'
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ADVERTISED_TOPICS: "search:1:1" #토픽:파티션수:레플리카수
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - kafka-volume:/var/run/docker.sock
+    networks:
+      - kafka_consumer
+      - kafka_producer
+
   db:
     image: mysql:8.0
     container_name: mysql_db
@@ -29,6 +54,7 @@ services:
     networks: 
       - frontback
       - backdb
+      - kafka_producer
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
       interval: 20s
@@ -50,12 +76,18 @@ services:
     networks: 
       - frontback
       - backdb
+      - kafka_producer
     healthcheck:
       test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
       interval: 20s
       timeout: 5s
       retries: 5
       start_period: 40s
+
+  consumer:
+    build: 
+      context: ./search_consumer
+    container_name: consumer
 
   front:
     build: ./frontend
@@ -68,10 +100,20 @@ services:
     ports:
       - 80:80
     networks: 
-      - frontback     
+      - kafka_consumer
+      - search
   
 networks: 
   backdb:
     driver: bridge
   frontback:
     driver: bridge
+  kafka_producer:
+    driver: bridge
+  kafka_consumer:
+    driver: bridge
+  search:
+    driver: bridge
+
+volumes:
+  kafka-volume:
