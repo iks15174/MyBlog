@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source ./backend/update_backend.sh
 source ./frontend/update_frontend.sh
 
@@ -20,7 +22,7 @@ cd ..
 echo "Check project aleary deployed"
 FRONT_CONTAINER_NM=front
 ALEADY_DELPOYED=$(docker ps --filter "name=$FRONT_CONTAINER_NM" | wc -l)
-if [ ${ALEADY_DELPOYED} -gt 1 ];
+if [ $ALEADY_DELPOYED -gt 1 ];
 then
     echo "Project aleardy deployed before"
     update_backend_container

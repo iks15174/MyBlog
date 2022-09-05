@@ -10,6 +10,10 @@ services:
       - '3308:3306'
     networks:
       - backdb
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "--password=password"]
+      timeout: 20s
+      retries: 10
   
   back1:
     build: 
@@ -17,11 +21,20 @@ services:
       args:
         APPLI_CONFIG: back1
     container_name: backend1
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - 8080:8080
     networks: 
       - frontback
       - backdb
+    healthcheck:
+      test: "curl --fail --silent localhost:8080/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   back2:
     build: 
@@ -29,15 +42,29 @@ services:
       args:
         APPLI_CONFIG: back2
     container_name: backend2
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - 8081:8081
     networks: 
       - frontback
       - backdb
+    healthcheck:
+      test: "curl --fail --silent localhost:8081/actuator/health | grep UP || exit 1"
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   front:
     build: ./frontend
     container_name: frontend
+    depends_on:
+      back1:
+        condition: service_healthy
+      back2:
+        condition: service_healthy
     ports:
       - 80:80
     networks: 
