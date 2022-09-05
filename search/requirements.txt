@@ -14,7 +14,7 @@ konlpy==0.6.0
 lxml==4.9.1
 mypy-extensions==0.4.3
 mysql-connector-python==8.0.30
-mysqlclient @ file:///C:/Users/iks15/Downloads/mysqlclient-1.4.6-cp37-cp37m-win_amd64.whl
+mysqlclient
 nltk==3.7
 numpy==1.21.6
 pathspec==0.10.1
