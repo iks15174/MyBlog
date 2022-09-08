@@ -3,4 +3,4 @@ WORKDIR /app
 COPY . ./
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
-ENTRYPOINT ["python", "consumer.py"]
+ENTRYPOINT python -u consumer.py
