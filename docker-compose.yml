@@ -1,8 +1,8 @@
 version: '3'
 services:
 
-  zookeepr:
-    container_name: local-zookeeper
+  zookeeper:
+    container_name: zookeeper
     image: wurstmeister/zookeeper:3.4.6
     ports:
       - '2181:2181'
@@ -10,14 +10,16 @@ services:
       - kafka_consumer
   
   kafka:
-    container_name: local-kafka
+    container_name: kafka
     image: wurstmeister/kafka:2.12-2.3.0
     ports:
       - '9092:9092'
+    depends_on:
+      - zookeeper
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_TOPICS: "search:1:1" #토픽:파티션수:레플리카수
+      KAFKA_CREATE_TOPICS: "search:1:1" #토픽:파티션수:레플리카수
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - kafka-volume:/var/run/docker.sock
@@ -27,7 +29,7 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: mysql_db
+    container_name: db
     environment:
       MYSQL_DATABASE: 'myblog'
       MYSQL_ROOT_PASSWORD: 'password'
@@ -45,7 +47,7 @@ services:
       context: ./backend
       args:
         APPLI_CONFIG: back1
-    container_name: backend1
+    container_name: back1
     depends_on:
       db:
         condition: service_healthy
@@ -67,9 +69,11 @@ services:
       context: ./backend
       args:
         APPLI_CONFIG: back2
-    container_name: backend2
+    container_name: back2
     depends_on:
       db:
+        condition: service_healthy
+      back1:
         condition: service_healthy
     ports:
       - 8081:8081
@@ -87,11 +91,16 @@ services:
   consumer:
     build: 
       context: ./search_consumer
+    depends_on:
+      - kafka
     container_name: consumer
+    networks: 
+      - kafka_consumer
+      - search
 
   front:
     build: ./frontend
-    container_name: frontend
+    container_name: front
     depends_on:
       back1:
         condition: service_healthy
@@ -100,8 +109,7 @@ services:
     ports:
       - 80:80
     networks: 
-      - kafka_consumer
-      - search
+      - frontback
   
 networks: 
   backdb:
