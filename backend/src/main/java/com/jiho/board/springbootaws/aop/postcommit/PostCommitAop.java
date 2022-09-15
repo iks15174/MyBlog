@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 public class PostCommitAop {
     private final PostCommitAdapter postCommitAdapter;
 
-    @Pointcut("@annotation(com.jiho.board.springbootaws.aop.postcommit)")
+    @Pointcut("@annotation(PostCommit)")
     private void postCommitPointCut(){}
 
 
