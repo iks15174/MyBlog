@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
+import com.jiho.board.springbootaws.aop.postcommit.PostCommit;
+
 @Component
 public class KafkaSearchSender {
     @Autowired
@@ -19,6 +21,7 @@ public class KafkaSearchSender {
     @Value(value = "${kafka.search.topic.name}")
     private String topicName;
 
+    @PostCommit
     public void send(SearchOpType searchOpType, Long target) {
 
         Message<String> message = MessageBuilder
